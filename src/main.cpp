@@ -26,8 +26,9 @@ constexpr const char* const VERTEX_SHADER_SOURCE =
 constexpr const char* const FRAGMENT_SHADER_SOURCE =
     "#version 330 core\n"
     "out vec4 FragColor;\n"
+    "uniform vec4 ourColor;\n"
     "void main() {\n"
-    "   FragColor = vec4(10.f, 0.f, 0.f, 1.0f);\n"
+    "   FragColor = ourColor;\n"
     "}\0";
 
 unsigned int CreateTriangleVAO();
@@ -129,6 +130,10 @@ int main() {
     // create the VAO
     unsigned int VA0 = CreateTriangleVAO();
 
+    float colors[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    int selected_color = 0;
+    float increase_amount = 0.01f;
+
     // Render loop
     while (!glfwWindowShouldClose(window)) {
         // handling input
@@ -138,7 +143,19 @@ int main() {
         glClearColor(0.7f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // update our shader using the uniforms
+        if (colors[selected_color] >= 1.0f) {
+            colors[selected_color] = 0.0f;
+            selected_color = (selected_color + 1) % 3;
+        }
+        colors[selected_color] += increase_amount;
+
+        int ourColorLocation =
+            glGetUniformLocation(*shader_program, "ourColor");
         glUseProgram(*shader_program);
+        glUniform4f(ourColorLocation, colors[0], colors[1], colors[2],
+                    colors[3]);
+
         glBindVertexArray(VA0);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 

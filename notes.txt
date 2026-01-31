@@ -109,10 +109,12 @@ Notes:
   (location 0 will be used later in glVertexAttribPointer)
 - This is a vertex shader so we are transforming individual points
 - We take a vec3 (3D point) and name it aPos
-- gl_Position is the predefined output variable. At the end of the function,
+- GL_POSITION is the predefined output variable. At the end of the function,
   whatever is in gl_Position will be the output of the shader
 - NOTE: gl_Position is a length-4 vector so we insert the 1.0 for the w
   component
+- NOTE: this output is implicitly defined we can have other outputs from our
+  vertex shader.
 
 
 ===============================================================================
@@ -415,3 +417,50 @@ glDrawArrays parameters:
 - mode: Primitive type to render (GL_TRIANGLES, GL_LINES, GL_POINTS, etc.)
 - first: Starting index of the first vertex to draw
 - count: Number of vertices to draw
+
+===============================================================================
+Uniforms
+===============================================================================
+
+Uniforms act as global variables (accessible from all shaders) inside of our
+shaders that persist at the same value unless reset or updated.
+
+Example fragment shader using a uniform:
+```
+#version 330 core
+out vec4 FragColor;
+
+uniform vec4 ourColor; // we set this variable in the OpenGL code
+
+void main()
+{
+    FragColor = ourColor;
+}
+```
+
+Setting uniform values from C++ code:
+```
+GLint glGetUniformLocation(GLuint program, const GLchar* name);
+void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+```
+```
+GLfloat timeValue = glfwGetTime();
+GLfloat greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+glUseProgram(shaderProgram);
+glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+```
+
+In this case we have created a uniform variable in the shader called ourColor.
+We get the location of the uniform, then we set the value using glUniform4f.
+
+glGetUniformLocation parameters:
+- program: The shader program containing the uniform
+- name: The name of the uniform variable in the shader code
+
+glUniform4f parameters:
+- location: The location of the uniform (from glGetUniformLocation)
+- v0, v1, v2, v3: The four float values to set (in this case: r, g, b, a)
+
+NOTE: You don't need to call glUseProgram to find the location of the uniform,
+BUT to update the uniform (using glUniform4f), you must have the program active.
