@@ -1,0 +1,417 @@
+These are some notes that I'm taking while going over the material on
+LearnOpenGL (https://learnopengl.com). I've done a renderer before but I'm now
+learning how to make one that is hopefully more powerful and featureful.
+
+===============================================================================
+OpenGL Types
+===============================================================================
+OpenGL defines typed aliases that make code more readable:
+- GLuint:    unsigned int (for buffer/shader/program IDs)
+- GLint:     int
+- GLfloat:   float
+- GLsizei:   size type (for counts and sizes)
+- GLenum:    enum type (for constants like GL_ARRAY_BUFFER)
+- GLboolean: boolean type
+- GLchar:    character type
+
+
+===============================================================================
+Vertex Input / Buffers
+===============================================================================
+
+Creating and binding buffers:
+- Use glGenBuffers to get a vertex buffer object (VBO) id
+- Then bind the buffer with glBindBuffer to a specific buffer target type
+- Many types of buffer objects exist; vertex buffer objects use GL_ARRAY_BUFFER
+- Can bind multiple buffers at once as long as they have different buffer types
+
+Creating a VBO:
+```
+void glGenBuffers(GLsizei n, GLuint* buffers);
+```
+```
+GLuint VBO;
+glGenBuffers(1, &VBO);
+```
+
+Binding the buffer to the GL_ARRAY_BUFFER target:
+```
+void glBindBuffer(GLenum target, GLuint buffer);
+```
+```
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+```
+
+Defining vertex data (vertices are in normalized device coordinates [-1, 1]):
+```
+GLfloat vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+};
+```
+
+Copying vertex data into the buffer's memory:
+```
+void glBufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
+```
+```
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+```
+
+glBufferData parameters:
+- target: The buffer target to operate on (GL_ARRAY_BUFFER for VBOs)
+- size: Size in bytes of the data being copied
+- data: Pointer to the data to copy
+- usage: How the GPU should manage the data:
+  - GL_STREAM_DRAW: set once, used by GPU at most a few times
+  - GL_STATIC_DRAW: set once, used many times
+  - GL_DYNAMIC_DRAW: changed a lot, used many times
+
+Complete example of creating and filling a VBO:
+```
+GLuint VBO;
+glGenBuffers(1, &VBO);
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+GLfloat vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+};
+
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+```
+
+
+===============================================================================
+Vertex Shader
+===============================================================================
+- Use GLSL (OpenGL Shading Language) to write shaders
+- In modern OpenGL we need to write the vertex and fragment shaders
+- Looks a lot like C
+
+Example vertex shader:
+```
+#version 330 core
+layout (location = 0) in vec3 aPos;
+
+void main()
+{
+    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+}
+```
+
+Notes:
+- OpenGL version can be used to find the GLSL version by concatenating the
+  major and minor versions of OpenGL
+- The location specifies which vertex attribute this input corresponds to
+  (location 0 will be used later in glVertexAttribPointer)
+- This is a vertex shader so we are transforming individual points
+- We take a vec3 (3D point) and name it aPos
+- gl_Position is the predefined output variable. At the end of the function,
+  whatever is in gl_Position will be the output of the shader
+- NOTE: gl_Position is a length-4 vector so we insert the 1.0 for the w
+  component
+
+
+===============================================================================
+Compiling the Shader
+===============================================================================
+
+Can save the GLSL shader as a C const string:
+```
+const GLchar* vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+```
+
+To use the shader, OpenGL will dynamically compile it at runtime from its
+source code.
+
+To create a shader we use glCreateShader:
+```
+GLuint glCreateShader(GLenum shaderType);
+```
+```
+GLuint vertexShader;
+vertexShader = glCreateShader(GL_VERTEX_SHADER);
+```
+
+In this case since it's a vertex shader we specify we want a GL_VERTEX_SHADER.
+
+Attaching the source code and compiling:
+```
+void glShaderSource(GLuint shader, GLsizei count, const GLchar** string, const GLint* length);
+void glCompileShader(GLuint shader);
+```
+```
+glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+glCompileShader(vertexShader);
+```
+
+glShaderSource parameters:
+- shader: The shader object to attach source to
+- count: Number of strings in the array
+- string: Array of source code strings
+- length: Array of string lengths (NULL = null-terminated strings)
+
+Can check for success with logic similar to:
+```
+void glGetShaderiv(GLuint shader, GLenum pname, GLint* params);
+void glGetShaderInfoLog(GLuint shader, GLsizei maxLength, GLsizei* length, GLchar* infoLog);
+```
+```
+bool checkShaderCompileSuccess(GLuint shader) {
+    GLint success;
+    GLchar infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << "\n";
+    }
+    return success;
+}
+```
+
+
+===============================================================================
+Fragment Shader
+===============================================================================
+- The fragment shader is all about calculating the color output of your pixels
+
+Example fragment shader:
+```
+#version 330 core
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+}
+```
+
+Notes:
+- One output variable of size 4 called FragColor
+- Define the output variables with the out keyword
+
+Compiling is the same (main difference is we use GL_FRAGMENT_SHADER instead of
+GL_VERTEX_SHADER):
+```
+GLuint fragmentShader;
+fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+glCompileShader(fragmentShader);
+```
+
+
+===============================================================================
+Shader Program
+===============================================================================
+The shader program is the final linked version of multiple shaders combined.
+To use the compiled shaders we need to link them to a shader program object
+and then activate the shader program when rendering objects.
+
+Creating and linking a shader program:
+```
+GLuint glCreateProgram(void);
+void glAttachShader(GLuint program, GLuint shader);
+void glLinkProgram(GLuint program);
+```
+```
+GLuint shaderProgram;
+shaderProgram = glCreateProgram();
+glAttachShader(shaderProgram, vertexShader);
+glAttachShader(shaderProgram, fragmentShader);
+glLinkProgram(shaderProgram);
+```
+
+Can use similar logic to check for the success of linking using the same
+method above used for compiling but using GL_LINK_STATUS instead of
+GL_COMPILE_STATUS with glGetProgramiv.
+
+
+===============================================================================
+Linking Vertex Attributes
+===============================================================================
+Vertex shaders allow us to specify any input we want in the form of vertex
+attributes, but we have to manually specify what part of our input data goes to
+which vertex attribute in the vertex shader.
+
+Setting up vertex attribute pointers:
+```
+void glVertexAttribPointer(GLuint index, GLint size, GLenum type,
+                          GLboolean normalized, GLsizei stride, const void* pointer);
+void glEnableVertexAttribArray(GLuint index);
+```
+```
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+glEnableVertexAttribArray(0);
+```
+
+What these functions do:
+- glVertexAttribPointer: Tells OpenGL HOW to read data from the buffer for a
+  specific vertex attribute location. This is the configuration step.
+
+- glEnableVertexAttribArray: Turns ON that vertex attribute so the shader
+  actually receives the buffer data. This is the activation step.
+
+Without glEnableVertexAttribArray, the shader won't receive your buffer data -
+it will just get default values (typically 0, 0, 0, 1) even though you've
+configured how to read it. Think of it as an "on switch" that gives the shader
+access to your buffer data.
+
+glVertexAttribPointer parameters:
+1. index: The vertex attribute location in the vertex shader. This connects to
+   the layout location in the shader (e.g., "layout (location = 0)" means
+   index = 0). It's just an ID number linking buffer data to shader input.
+
+2. size: The number of COMPONENTS per vertex attribute (NOT the total number of
+   vertices). For a vec3 (x, y, z), size = 3. For a vec2 (u, v), size = 2.
+   For a vec4 (r, g, b, a), size = 4. This tells OpenGL "how many numbers make
+   up one value of this attribute for a single vertex."
+
+3. type: Data type of each component. GL_FLOAT for floats, GL_INT for ints, etc.
+   Since GLSL vec's use floating point values, we use GL_FLOAT.
+
+4. normalized: Should the data be normalized to [0, 1] or [-1, 1]? GL_FALSE = no
+   normalization (use the values as-is).
+
+5. stride: Byte offset between consecutive vertex attributes. This is "how many
+   bytes to skip to get to the next vertex's data." Since we have tightly packed
+   data (3 floats of 4 bytes each = 12 bytes per vertex), our stride is 12.
+   You can also pass 0 to let OpenGL calculate it automatically for tightly
+   packed data.
+
+6. pointer: Offset (in bytes) of where this attribute's data begins in the
+   buffer. Since position data starts at the beginning of our buffer, we use 0.
+   If we had interleaved data (position, then color, then position, then color),
+   this would tell OpenGL where in each vertex's data this specific attribute
+   starts.
+
+Example to clarify size parameter (2nd param):
+```
+// If you have 3 vertices with position data:
+GLfloat vertices[] = {
+    -0.5f, -0.5f, 0.0f,  // Vertex 1: x, y, z (3 components)
+     0.5f, -0.5f, 0.0f,  // Vertex 2: x, y, z (3 components)
+     0.0f,  0.5f, 0.0f   // Vertex 3: x, y, z (3 components)
+};
+
+// Shader says:
+// layout (location = 0) in vec3 aPos;
+
+glVertexAttribPointer(0, 3, GL_FLOAT, ...);
+//                       ^
+//                       3 components PER vertex (not 3 total vertices!)
+//                       Because each position is a vec3 (x, y, z)
+```
+
+Different attribute sizes for different types:
+```
+// Position attribute (vec3): size = 3
+glVertexAttribPointer(0, 3, GL_FLOAT, ...);  // x, y, z
+
+// Texture coordinate attribute (vec2): size = 2
+glVertexAttribPointer(1, 2, GL_FLOAT, ...);  // u, v
+
+// Color attribute (vec4): size = 4
+glVertexAttribPointer(2, 4, GL_FLOAT, ...);  // r, g, b, a
+```
+
+Should be able to then render using the following code:
+```
+// 0. copy our vertices array in a buffer for OpenGL to use
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+// 1. then set the vertex attributes pointers
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+glEnableVertexAttribArray(0);
+// 2. use our shader program when we want to render an object
+glUseProgram(shaderProgram);
+// 3. now draw the object
+someOpenGLFunctionThatDrawsOurTriangle();
+```
+
+It seems annoying to bind the appropriate buffer objects and configure the
+vertex attributes for each of those objects. Is there some better way to store
+all of these state configurations into an object and simply bind this object to
+restore its state?
+
+
+===============================================================================
+Vertex Array Object
+===============================================================================
+- A vertex array object (VAO) can be bound just like a vertex buffer object and
+  any subsequent vertex attribute calls from that point on will be stored
+  inside the VAO
+
+- Benefit of this is that we don't need to set the vertex attribute pointers
+  every single time (it's saved in the VAO) and then we can just bind it when
+  we want to render something
+
+VAO stores:
+- Enable/disable status of vertex attribute arrays
+- Vertex attribute configuration via glVertexAttribPointer
+- Vertex buffer objects associated with vertex attributes
+
+Creating a VAO looks similar to that of a VBO:
+```
+void glGenVertexArrays(GLsizei n, GLuint* arrays);
+void glBindVertexArray(GLuint array);
+```
+```
+GLuint VAO;
+glGenVertexArrays(1, &VAO);
+```
+
+Flow from before is pretty much the same but we bind the vertex array object
+during initialization and then bind when we want to use the VAO again:
+```
+// ..:: Initialization code (done once (unless your object frequently changes)) :: ..
+// 1. bind Vertex Array Object
+glBindVertexArray(VAO);
+// 2. copy our vertices array in a buffer for OpenGL to use
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+// 3. then set our vertex attributes pointers
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+glEnableVertexAttribArray(0);
+
+
+[...]
+
+// ..:: Drawing code (in render loop) :: ..
+// 4. draw the object
+glUseProgram(shaderProgram);
+glBindVertexArray(VAO);
+someOpenGLFunctionThatDrawsOurTriangle();
+```
+
+
+===============================================================================
+Drawing a Triangle
+===============================================================================
+
+Everything has led to this point for the following:
+```
+void glUseProgram(GLuint program);
+void glDrawArrays(GLenum mode, GLint first, GLsizei count);
+```
+```
+glUseProgram(shaderProgram);
+glBindVertexArray(VAO);
+glDrawArrays(GL_TRIANGLES, 0, 3);
+```
+
+We load the shader, we bind the data (VAO which contains the VBO and attribute
+pointer configuration) and we call the glDrawArrays function.
+
+glDrawArrays parameters:
+- mode: Primitive type to render (GL_TRIANGLES, GL_LINES, GL_POINTS, etc.)
+- first: Starting index of the first vertex to draw
+- count: Number of vertices to draw
