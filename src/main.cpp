@@ -8,6 +8,8 @@
 #include <iostream>
 #include <optional>
 
+#include "shader.h"
+
 constexpr int DEFAULT_WINDOW_WIDTH = 800;
 constexpr int DEFAULT_WINDOW_HEIGHT = 600;
 
@@ -26,39 +28,6 @@ constexpr float COLORED_TRIANGLE_DATA[] = {
      0.25,  0.75f,  0.0f, 0.0f, 0.0f, 1.0f,
 };
 // clang-format on
-
-constexpr const char* const VERTEX_SHADER_SOURCE =
-    "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main() {\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);\n"
-    "}\0";
-
-constexpr const char* const FRAGMENT_SHADER_SOURCE =
-    "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "uniform vec4 ourColor;\n"
-    "void main() {\n"
-    "   FragColor = ourColor;\n"
-    "}\0";
-
-constexpr const char* const COLORED_VERTEX_SHADER_SOURCE =
-    "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec3 aColor;\n"
-    "out vec3 ourColor;\n"
-    "void main() {\n"
-    "   gl_Position = vec4(aPos, 1.0f);\n"
-    "   ourColor = aColor;\n"
-    "}\0";
-
-constexpr const char* const COLORED_FRAGMENT_SHADER_SOURCE =
-    "#version 330 core\n"
-    "in vec3 ourColor;\n"
-    "out vec4 FragColor;\n"
-    "void main() {\n"
-    "   FragColor = vec4(ourColor, 1.0f);\n"
-    "}\0";
 
 unsigned int CreateTriangleVAO();
 std::optional<unsigned int> CompileShaderProgram();
@@ -110,44 +79,6 @@ unsigned int CreateColoredTriangleVAO() {
     return VA0;
 }
 
-std::optional<unsigned int> CompileShaderProgram() {
-    unsigned vert_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vert_shader, 1, &VERTEX_SHADER_SOURCE, nullptr);
-    glCompileShader(vert_shader);
-    if (!CheckShaderCompileSuccess(vert_shader)) return {};
-
-    unsigned frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(frag_shader, 1, &FRAGMENT_SHADER_SOURCE, nullptr);
-    glCompileShader(frag_shader);
-    if (!CheckShaderCompileSuccess(frag_shader)) return {};
-
-    unsigned int shader_program;
-    shader_program = glCreateProgram();
-    glAttachShader(shader_program, vert_shader);
-    glAttachShader(shader_program, frag_shader);
-    glLinkProgram(shader_program);
-    return shader_program;
-}
-
-std::optional<unsigned int> CompileColorShaderProgram() {
-    unsigned vert_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vert_shader, 1, &COLORED_VERTEX_SHADER_SOURCE, nullptr);
-    glCompileShader(vert_shader);
-    if (!CheckShaderCompileSuccess(vert_shader)) return {};
-
-    unsigned frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(frag_shader, 1, &COLORED_FRAGMENT_SHADER_SOURCE, nullptr);
-    glCompileShader(frag_shader);
-    if (!CheckShaderCompileSuccess(frag_shader)) return {};
-
-    unsigned int shader_program;
-    shader_program = glCreateProgram();
-    glAttachShader(shader_program, vert_shader);
-    glAttachShader(shader_program, frag_shader);
-    glLinkProgram(shader_program);
-    return shader_program;
-}
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
@@ -155,18 +86,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void ProcessInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-}
-
-bool CheckShaderCompileSuccess(unsigned int shader) {
-    int success;
-    char infoLog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                  << infoLog << "\n";
-    }
-    return success;
 }
 
 int main() {
@@ -192,13 +111,10 @@ int main() {
         return -1;
     }
 
-    // create the shader
-    auto shader_program = CompileShaderProgram();
-    if (!shader_program) return -1;
-
-    // create the shader
-    auto colored_shader_program = CompileColorShaderProgram();
-    if (!colored_shader_program) return -1;
+    Shader uniform_shader =
+        Shader("../shaders/uniform.vs", "../shaders/uniform.fs");
+    Shader gradient_shader =
+        Shader("../shaders/gradient.vs", "../shaders/gradient.fs");
 
     // create the VAO
     unsigned int VA0 = CreateTriangleVAO();
@@ -226,16 +142,13 @@ int main() {
         }
         colors[selected_color] += increase_amount;
 
-        int ourColorLocation =
-            glGetUniformLocation(*shader_program, "ourColor");
-        glUseProgram(*shader_program);
-        glUniform4f(ourColorLocation, colors[0], colors[1], colors[2],
-                    colors[3]);
-
+        uniform_shader.Use();
+        uniform_shader.SetFloat("ourColor",
+                                {colors[0], colors[1], colors[2], colors[3]});
         glBindVertexArray(VA0);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        glUseProgram(*colored_shader_program);
+        gradient_shader.Use();
         glBindVertexArray(VA1);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 

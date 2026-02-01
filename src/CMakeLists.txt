@@ -1,4 +1,12 @@
-add_executable(renderer main.cpp)
+add_executable(renderer
+    main.cpp
+    shader.cpp
+)
+
+target_include_directories(renderer
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+)
 
 target_link_libraries(renderer
     PUBLIC
