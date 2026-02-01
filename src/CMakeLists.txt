@@ -7,6 +7,7 @@ add_executable(renderer
 target_include_directories(renderer
     PUBLIC
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/thirdparty
 )
 
 target_link_libraries(renderer

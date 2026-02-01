@@ -418,6 +418,79 @@ glDrawArrays parameters:
 - first: Starting index of the first vertex to draw
 - count: Number of vertices to draw
 
+
+===============================================================================
+Element Buffer Objects (Index Buffers)
+===============================================================================
+
+Element Buffer Objects (EBOs) allow you to reuse vertices when drawing shapes.
+Instead of duplicating vertex data, you define unique vertices once and use
+indices to specify which vertices form each triangle.
+
+Example - Drawing a rectangle (2 triangles):
+
+Without EBO (duplicating vertices):
+```
+GLfloat vertices[] = {
+    // First triangle
+    -0.5f,  0.5f, 0.0f,  // top-left
+     0.5f,  0.5f, 0.0f,  // top-right
+     0.5f, -0.5f, 0.0f,  // bottom-right
+    // Second triangle
+    -0.5f,  0.5f, 0.0f,  // top-left (duplicated!)
+     0.5f, -0.5f, 0.0f,  // bottom-right (duplicated!)
+    -0.5f, -0.5f, 0.0f,  // bottom-left
+};
+glDrawArrays(GL_TRIANGLES, 0, 6);  // 6 vertices
+```
+
+With EBO (reusing vertices):
+```
+GLfloat vertices[] = {
+    -0.5f,  0.5f, 0.0f,  // 0: top-left
+     0.5f,  0.5f, 0.0f,  // 1: top-right
+     0.5f, -0.5f, 0.0f,  // 2: bottom-right
+    -0.5f, -0.5f, 0.0f,  // 3: bottom-left
+};
+
+GLuint indices[] = {
+    0, 1, 2,  // First triangle
+    0, 2, 3   // Second triangle (reuses vertices 0 and 2)
+};
+```
+
+Creating and using an EBO:
+```
+void glGenBuffers(GLsizei n, GLuint* buffers);
+void glBindBuffer(GLenum target, GLuint buffer);
+void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices);
+```
+```
+GLuint EBO;
+glGenBuffers(1, &EBO);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+```
+
+Rendering with an EBO:
+```
+glBindVertexArray(VAO);
+glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+```
+
+glDrawElements parameters:
+- mode: Primitive type to render (GL_TRIANGLES, GL_LINES, etc.)
+- count: Number of indices to draw (NOT number of vertices)
+- type: Data type of indices (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT)
+- indices: Offset into the EBO (usually 0, or use pointer arithmetic for subsets)
+
+Important notes:
+- The VAO stores the EBO binding, so you don't need to bind the EBO again when
+  rendering (just bind the VAO)
+- Indices are zero-based (first vertex is 0)
+- Using an EBO saves memory and can improve performance for complex meshes
+
+
 ===============================================================================
 Uniforms
 ===============================================================================
@@ -464,3 +537,227 @@ glUniform4f parameters:
 
 NOTE: You don't need to call glUseProgram to find the location of the uniform,
 BUT to update the uniform (using glUniform4f), you must have the program active.
+
+===============================================================================
+Textures
+===============================================================================
+
+texture coordinates range from [0, 1] on the X and Y axis. With top right being
+(1, 1), and bottom left being (0, 0)
+
+Just like with the fragment shader we wrote last time we only need to specify
+the text coordinates for the 3 verticies and the fragment interpolation will
+do the rest for us.
+
+texture sampling has a loose interpolation and can be done in many differnet
+ways. So we must tell OpenGL how it should sample it's textures.
+
+===============================================================================
+Texture Wrapping
+===============================================================================
+
+Question: What happens when we specify text coordinates outside of the [0, 1]
+range? By default, OpenGL will just repeat the texture, but there are other
+options
+
+Can take a look at what some of these options visually look like:
+https://learnopengl.com/Getting-started/Textures
+in the texture wrapping section
+
+GL_REPEAT: default behaviour repeats texture
+GL_MIRRORED_REPEAT: same as GL_REPEAT but mirrors the image with each repeat
+GL_CLAMP_TO_EDGE: clamps the coordinates between [0, 1] higher coordinates
+get clamped to the edge.
+GL_CLAMP_TO_BORDER: coordinates outside the range are now given a user-specified
+border color.
+
+each of these options are set with GlTexParameter*
+```
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+```
+
+NOTE: texture axis is (S, T, R) not (X, Y, Z)
+
+first arg is the texture target, second is what option we want to set and for
+which texture axis. Last is the wrapping mode.
+
+if we chose GL_CLAMP_TO_BORDER we could have specified the border color with
+the following:
+```
+float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+```
+
+===============================================================================
+Texture Filtering
+===============================================================================
+
+texture coordinates don't depend on resolution of the image, thus OpenGL must
+determine the color of the texture pixel (A.K.A. a texel) to map the texture
+coordinate to.
+
+OpenGL has options for texture filtering with the most important being
+GL_NEAREST: returns the color of the nearest pixel in the texture
+GL_LINEAR: (billinear filtering) takes an interpolated value from the texture's
+neighboring texels, and approximating a color between the texels.
+
+Can take a look at what some of these options visually look like:
+https://learnopengl.com/Getting-started/Textures
+in the texture filtering section.
+
+texture filtering can beset for magnifying or minifying operations.
+we thus have to specify the filtering methods for both options in
+glTexParameter
+```
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+```
+
+Mipmaps:
+in a very complicated scene you might have thousands of different textures,
+if they are all very high res this could put a lot of load on your memory
+especially if the textures are being viewed from far away where detail might
+not be so important anyways. OpenGL has the concept of a Mipmap that
+contains a texture image and copies half of it's size continually,
+e.g. 1, 1/2, 1/4 the size etc...
+
+glGenerateMipmap
+you have four options for scaling once again:
+GL_<TEXEL INTERP>_MIPMAP_<MIPMAP INTERP>
+where TEXEL INTERP and MIPMAP INTERP can be LINEAR or NEAREST. The texel interp
+is has the effect of as described above and the MIPMAP INTERP determines
+what texture image to use: either the nearest relative to pixel size, or
+interpolate between two Mipmaps.
+
+```
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+```
+
+===============================================================================
+Loading and Creating Textures
+===============================================================================
+going to be using the stb header for loading in images.
+
+Loading is simple:
+```
+int width, height, nrChannels;
+unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0)
+```
+
+Then we create the texture and bind it:
+```
+unsigned int texture;
+glGenTextures(1, &texture);
+glBindTexture(GL_TEXTURE_2D, texture);
+```
+
+Next we can generate the texture and Mipmap with teh following function:
+```
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+glGenerateMipmap(GL_TEXTURE_2D)
+```
+
+glTextImage2D has the following arguments:
+1. specifies the texture target.
+2. specifies the Mipmap level for thwich we want to create a text for if you
+   want to set each mipmap level manually. (default is 0)
+3. tells opengl what kind of format we want to store the texture.
+4. width of texture
+5. height of texture
+6. should always be 0 (legacy reasons apparently)
+7. format of the source image
+8. specify the data type of the source image
+9. image data
+
+it's good practice to free the memory after loading the data with:
+```
+stbi_image_free(data);
+```
+
+IMPORTANT - Texture Row Alignment Issue:
+By default, OpenGL assumes texture data has 4-byte alignment per row. However,
+stb_image loads data without padding (tightly packed). This causes rendering
+issues with textures whose width * channels is not a multiple of 4.
+
+Example: A 250x250 RGB image has 250 * 3 = 750 bytes per row, which is not
+divisible by 4. OpenGL expects padding, but stb_image doesn't provide it.
+
+Solution - Tell OpenGL to use 1-byte alignment before uploading texture data:
+```
+glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+```
+
+GL_UNPACK_ALIGNMENT values:
+- 1: No alignment (use for tightly packed data from stb_image)
+- 4: 4-byte alignment (OpenGL default)
+- 2 or 8: Also valid but rarely used
+
+Only needs to be set once before texture uploads, or set it per texture if you
+have different alignment requirements.
+
+Loading the texture roughly looks like this:
+```
+unsigned int texture;
+glGenTextures(1, &texture);
+glBindTexture(GL_TEXTURE_2D, texture);
+// set the texture wrapping/filtering options (on the currently bound texture object)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+// load and generate the texture
+int width, height, nrChannels;
+unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+if (data)
+{
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+else
+{
+    std::cout << "Failed to load texture" << std::endl;
+}
+stbi_image_free(data);
+```
+
+Next we update everything.
+vertex shader remains roughly the same with additional attribute for storing
+texture coordinates that we save into the float array for data.
+```
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 aTexCoord;
+
+out vec3 ourColor;
+out vec2 TexCoord;
+
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+    ourColor = aColor;
+    TexCoord = aTexCoord;
+}
+```
+
+But the fragment shader changes a bit. We can use the Sampler2D data type to
+pass our text object into the fragment shader. And then to sample the color of
+a texture we use glsl's built in texture function that takes the sampler as the
+first argument and the texture coordiante next (the pair each number in [0,1]).
+```
+#version 330 core
+out vec4 FragColor;
+
+in vec3 ourColor;
+in vec2 TexCoord;
+
+uniform sampler2D ourTexture;
+
+void main()
+{
+    FragColor = texture(ourTexture, TexCoord);
+}
+```

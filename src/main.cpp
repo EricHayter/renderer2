@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
 #include <iostream>
 
 #include "shader.h"
@@ -13,17 +16,32 @@
 // clang-format off
 // 9 values in total (3 floats per point to make a triangle)
 constexpr float TRIANGLE_DATA[] = {
-    -0.5f, -0.5f,  0.0f,
-     0.5f, -0.5f,  0.0f,
-     0.0f,  0.5f,  0.0f,
+    -0.5f, -0.5f,  0.0f, // bottom left
+     0.5f, -0.5f,  0.0f, // bottom right
+     0.0f,  0.5f,  0.0f, // top-center
 };
 
 // 9 values in total (3 floats per point to make a triangle)
 constexpr float COLORED_TRIANGLE_DATA[] = {
+    // coordinates         // color
     -0.25f, -0.25f,  0.0f, 1.0f, 0.0f, 0.0f,
      0.75f, -0.25f,  0.0f, 0.0f, 1.0f, 0.0f,
      0.25f,  0.75f,  0.0f, 0.0f, 0.0f, 1.0f,
 };
+
+constexpr float APHEX_TWIN_SQUARE_DATA[] = {
+    // coordintes        // texture coordinates
+     0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top right
+     0.0f,  0.0f,  0.0f, 1.0f, 0.0f, // bottom right
+    -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom left
+    -1.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top left
+};
+
+constexpr unsigned int APHEX_TWIN_SQUARE_INDEX[] = {
+    2, 3, 0,
+    0, 1, 2,
+};
+
 // clang-format on
 
 unsigned int CreateTriangleVAO();
@@ -73,6 +91,68 @@ unsigned int CreateColoredTriangleVAO() {
     return VA0;
 }
 
+unsigned int CreateAphexTwinSquareVAO() {
+    unsigned int VA0;
+    glGenVertexArrays(1, &VA0);
+    glBindVertexArray(VA0);
+
+    unsigned int VB0;
+    glGenBuffers(1, &VB0);
+    glBindBuffer(GL_ARRAY_BUFFER, VB0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(APHEX_TWIN_SQUARE_DATA),
+                 APHEX_TWIN_SQUARE_DATA, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)0x00);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    unsigned int EB0;
+    glGenBuffers(1, &EB0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EB0);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(APHEX_TWIN_SQUARE_INDEX),
+                 APHEX_TWIN_SQUARE_INDEX, GL_STATIC_DRAW);
+
+    return VA0;
+}
+
+unsigned int CreateAphexTwinTexture() {
+    std::filesystem::path texture_path = "../textures/aphex_twin.jpg";
+    int height, width, nrchannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data =
+        stbi_load(texture_path.c_str(), &width, &height, &nrchannels, 0);
+    if (!data) {
+        std::cout << "Failed to load aphex twin file\n";
+        return 0;
+    }
+    std::cout << "Loaded texture: " << width << "x" << height << " with "
+              << nrchannels << " channels\n";
+
+    glActiveTexture(GL_TEXTURE0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT,
+                  1);  // stb loads in the data with NO padding
+                       // opengl expects that it can read in the data
+                       // 4 bytes at a time by default.
+    unsigned int T0;
+    glGenTextures(1, &T0);
+    glBindTexture(GL_TEXTURE_2D, T0);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                    GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+    return T0;
+}
+
 int main() {
     auto window_opt = window::InitWindow({});
     if (!window_opt.has_value()) return -1;
@@ -88,12 +168,17 @@ int main() {
         Shader("../shaders/uniform.vs", "../shaders/uniform.fs");
     Shader gradient_shader =
         Shader("../shaders/gradient.vs", "../shaders/gradient.fs");
+    Shader texture_shader =
+        Shader("../shaders/texture.vs", "../shaders/texture.fs");
 
     // create the VAO
     unsigned int VA0 = CreateTriangleVAO();
 
     // create the VAO
     unsigned int VA1 = CreateColoredTriangleVAO();
+
+    unsigned int T0 = CreateAphexTwinTexture();
+    unsigned int VA2 = CreateAphexTwinSquareVAO();
 
     float colors[] = {0.0f, 0.0f, 0.0f, 1.0f};
     int selected_color = 0;
@@ -124,6 +209,12 @@ int main() {
         gradient_shader.Use();
         glBindVertexArray(VA1);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        texture_shader.Use();
+        texture_shader.SetInt("Texture", {0});
+        glBindTexture(GL_TEXTURE_2D, T0);
+        glBindVertexArray(VA2);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // swap buffers and poll for IO events
         glfwSwapBuffers(window);
