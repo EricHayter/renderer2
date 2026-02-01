@@ -5,12 +5,10 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
 #include <iostream>
 
 #include "shader.h"
+#include "texture.h"
 #include "window_management.h"
 
 // clang-format off
@@ -117,42 +115,6 @@ unsigned int CreateAphexTwinSquareVAO() {
     return VA0;
 }
 
-unsigned int CreateAphexTwinTexture() {
-    std::filesystem::path texture_path = "../textures/aphex_twin.jpg";
-    int height, width, nrchannels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data =
-        stbi_load(texture_path.c_str(), &width, &height, &nrchannels, 0);
-    if (!data) {
-        std::cout << "Failed to load aphex twin file\n";
-        return 0;
-    }
-    std::cout << "Loaded texture: " << width << "x" << height << " with "
-              << nrchannels << " channels\n";
-
-    glActiveTexture(GL_TEXTURE0);
-    glPixelStorei(GL_UNPACK_ALIGNMENT,
-                  1);  // stb loads in the data with NO padding
-                       // opengl expects that it can read in the data
-                       // 4 bytes at a time by default.
-    unsigned int T0;
-    glGenTextures(1, &T0);
-    glBindTexture(GL_TEXTURE_2D, T0);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
-    return T0;
-}
-
 int main() {
     auto window_opt = window::InitWindow({});
     if (!window_opt.has_value()) return -1;
@@ -177,7 +139,7 @@ int main() {
     // create the VAO
     unsigned int VA1 = CreateColoredTriangleVAO();
 
-    unsigned int T0 = CreateAphexTwinTexture();
+    Texture aphex_twin_texture = Texture("../textures/aphex_twin.jpg", {});
     unsigned int VA2 = CreateAphexTwinSquareVAO();
 
     float colors[] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -212,7 +174,7 @@ int main() {
 
         texture_shader.Use();
         texture_shader.SetInt("Texture", {0});
-        glBindTexture(GL_TEXTURE_2D, T0);
+        aphex_twin_texture.Use();
         glBindVertexArray(VA2);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
