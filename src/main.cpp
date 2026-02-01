@@ -6,12 +6,9 @@
 // clang-format on
 
 #include <iostream>
-#include <optional>
 
 #include "shader.h"
-
-constexpr int DEFAULT_WINDOW_WIDTH = 800;
-constexpr int DEFAULT_WINDOW_HEIGHT = 600;
+#include "window_management.h"
 
 // clang-format off
 // 9 values in total (3 floats per point to make a triangle)
@@ -25,15 +22,12 @@ constexpr float TRIANGLE_DATA[] = {
 constexpr float COLORED_TRIANGLE_DATA[] = {
     -0.25f, -0.25f,  0.0f, 1.0f, 0.0f, 0.0f,
      0.75f, -0.25f,  0.0f, 0.0f, 1.0f, 0.0f,
-     0.25,  0.75f,  0.0f, 0.0f, 0.0f, 1.0f,
+     0.25f,  0.75f,  0.0f, 0.0f, 0.0f, 1.0f,
 };
 // clang-format on
 
 unsigned int CreateTriangleVAO();
-std::optional<unsigned int> CompileShaderProgram();
-void FramebufferSizeCallbank(GLFWwindow* window, int width, int height);
-void ProcessInput(GLFWwindow* window);
-bool CheckShaderCompileSuccess(unsigned int shader);
+unsigned int CreateColoredTriangleVAO();
 
 unsigned int CreateTriangleVAO() {
     unsigned int VA0;
@@ -79,34 +73,13 @@ unsigned int CreateColoredTriangleVAO() {
     return VA0;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
-void ProcessInput(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-
 int main() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(
-        DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    auto window_opt = window::InitWindow({});
+    if (!window_opt.has_value()) return -1;
+    GLFWwindow* window = *window_opt;
 
     // Use glad to import everything for OpenGL
-    int version = gladLoadGL(glfwGetProcAddress);
-    if (version == 0) {
+    if (!gladLoadGL(glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
@@ -129,7 +102,7 @@ int main() {
     // Render loop
     while (!glfwWindowShouldClose(window)) {
         // handling input
-        ProcessInput(window);
+        window::ProcessInput(window);
 
         // Rendering
         glClearColor(0.7f, 0.3f, 0.3f, 1.0f);

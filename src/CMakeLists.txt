@@ -1,6 +1,7 @@
 add_executable(renderer
     main.cpp
     shader.cpp
+    window_management.cpp
 )
 
 target_include_directories(renderer
