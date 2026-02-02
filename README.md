@@ -6,6 +6,18 @@ Following [LearnOpenGL](https://learnopengl.com/) and documenting everything I l
 
 ## Building
 
+Clone with submodules:
+```bash
+git clone --recursive https://github.com/EricHayter/renderer2
+cd renderer2
+```
+
+If you already cloned without `--recursive`:
+```bash
+git submodule update --init --recursive
+```
+
+Build:
 ```bash
 mkdir build
 cd build
