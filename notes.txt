@@ -538,6 +538,79 @@ glUniform4f parameters:
 NOTE: You don't need to call glUseProgram to find the location of the uniform,
 BUT to update the uniform (using glUniform4f), you must have the program active.
 
+
+===============================================================================
+GLM (OpenGL Mathematics)
+===============================================================================
+
+GLM is a C++ mathematics library designed for OpenGL. It provides vector and
+matrix types that match GLSL types, making it easy to work with transformations.
+
+Common types:
+- glm::vec3 - 3D vector (x, y, z)
+- glm::vec4 - 4D vector (x, y, z, w)
+- glm::mat4 - 4x4 matrix (used for transformations)
+
+Creating transformation matrices:
+
+Identity matrix (no transformation):
+```
+glm::mat4 trans = glm::mat4(1.0f);
+```
+
+Translation (moving objects):
+```
+trans = glm::translate(trans, glm::vec3(0.5f, 0.5f, 0.0f));
+// Translates by (0.5, 0.5, 0.0) in x, y, z
+```
+
+Rotation (spinning objects):
+```
+trans = glm::rotate(trans, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+// Rotates by 'angle' radians around the z-axis
+// Third parameter is the axis of rotation
+```
+
+Scaling (resizing objects):
+```
+trans = glm::scale(trans, glm::vec3(2.0f, 2.0f, 1.0f));
+// Scales by 2x in x and y, 1x in z
+```
+
+Example combining transformations:
+```
+glm::mat4 trans = glm::mat4(1.0f);
+trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+```
+
+Important: Transformation order in code is REVERSE of application order!
+- In the example above: rotate is applied FIRST, then translate
+- Code order: translate → rotate
+- Application order: rotate → translate (reverse!)
+
+This happens because GLM post-multiplies matrices. When you write
+`trans = glm::translate(trans, ...)`, it computes `trans = trans * T`,
+so transformations build up from right to left.
+
+Sending matrices to shaders:
+Matrices need to be converted to a format OpenGL can use:
+```
+glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(trans));
+```
+
+Common use case - rotating an object in place at a position:
+```
+trans = glm::translate(trans, position);  // Move to position
+trans = glm::rotate(trans, angle, axis);   // Then rotate
+// Result: object spins at 'position'
+```
+
+Note: Rotations always happen around the origin (0, 0, 0). To rotate an object
+in place, make sure the object's vertices are centered at the origin, or use
+translate → rotate → translate-back pattern.
+
+
 ===============================================================================
 Textures
 ===============================================================================
@@ -761,3 +834,83 @@ void main()
     FragColor = texture(ourTexture, TexCoord);
 }
 ```
+
+===============================================================================
+Coordinate Systems
+===============================================================================
+There are 5 coordinate systems that we care about:
+1. Local space (or object space)
+2. World space
+3. View space (or eye space)
+4. Clip space
+5. Screen space
+
+To convert between the different coordinate systems we use three main matrices:
+the model matrix, view matrix, and projection matrix.
+
+Coordinates first start in local space as local coordinates and are then
+further processed to world coordinates, view coordinates, clip coordinates, and
+lastly screen coordinates.
+
+Transformation pipeline:
+local -(model matrix)-> world -(view matrix)-> view -(projection matrix)->
+clip -(viewport transform)-> screen space
+
+The transformation process:
+1. Everything starts relative to its local origin
+2. Transform to world-space coordinates which makes everything relative to a
+   global origin (model matrix)
+3. Transform the world coordinates to view-space coordinates so that each
+   coordinate is as seen from the camera's point of view (view matrix)
+4. Apply projection to map coordinates to the -1.0 to 1.0 range (projection matrix)
+5. Convert from the -1.0 to 1.0 range to the viewport range (viewport transform)
+
+The projection matrix takes a viewing box and scales it down to the desired
+(-1.0, 1.0) NDC (normalized device coordinates) range that OpenGL expects.
+We call this viewing box a frustum.
+
+Important: Anything outside the frustum (closer than near plane or farther
+than far plane) gets clipped and discarded.
+
+
+===============================================================================
+Orthographic Projection
+===============================================================================
+
+Orthographic projection takes everything inside the box and discards everything
+else (no scaling based on depth - parallel projection).
+
+Can create an orthographic projection using glm::ortho:
+```
+glm::mat4 proj = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
+```
+
+glm::ortho parameters:
+1. Left side of frustum
+2. Right side of frustum
+3. Bottom of frustum
+4. Top of frustum
+5. Near plane distance of frustum
+6. Far plane distance of frustum
+
+
+===============================================================================
+Perspective Projection
+===============================================================================
+
+Perspective projection creates depth - objects farther away appear smaller
+(mimics how human eyes see the world).
+
+You can create a perspective projection matrix with GLM:
+```
+glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width/(float)height, 0.1f, 100.0f);
+```
+
+glm::perspective parameters:
+1. FOV (field of view) - defines how wide the camera can see. Typically 45-90 degrees
+2. Aspect ratio - usually width/height of the viewport
+3. Near plane - distance to near clipping plane (typically 0.1)
+4. Far plane - distance to far clipping plane (typically 100.0)
+
+Objects closer than the near plane or farther than the far plane are clipped.
+
