@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 #include "shader.h"
@@ -130,8 +131,8 @@ int main() {
         Shader("../shaders/uniform.vs", "../shaders/uniform.fs");
     Shader gradient_shader =
         Shader("../shaders/gradient.vs", "../shaders/gradient.fs");
-    Shader texture_shader =
-        Shader("../shaders/texture.vs", "../shaders/texture.fs");
+    Shader texture_transform_shader =
+        Shader("../shaders/transform.vs", "../shaders/transform.fs");
 
     // create the VAO
     unsigned int VA0 = CreateTriangleVAO();
@@ -172,8 +173,17 @@ int main() {
         glBindVertexArray(VA1);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        texture_shader.Use();
-        texture_shader.SetInt("Texture", {0});
+        // Texture and transformation
+        texture_transform_shader.Use();
+        texture_transform_shader.SetInt("Texture", {0});
+
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)(4 * glfwGetTime()),
+                            glm::vec3(0.0f, 0.0f, 1.0f));
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        texture_transform_shader.SetMatrix4("Translate", trans);
+
         aphex_twin_texture.Use();
         glBindVertexArray(VA2);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

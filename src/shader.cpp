@@ -1,14 +1,19 @@
 #include "shader.h"
 
+// clang format will change the input order which MUST be in this specific
+// order
+// clang-format off
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
+// clang-format on
 
 #include <filesystem>
 #include <fstream>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
-#include "glad/gl.h"
 
 bool CheckShaderCompileSuccess(unsigned int shader_id) {
     int success;
@@ -152,4 +157,9 @@ void Shader::SetFloat(std::string_view name,
             glUniform4f(location, data[0], data[1], data[2], data[3]);
             break;
     }
+}
+
+void Shader::SetMatrix4(std::string_view name, const glm::mat4& mat) {
+    GLint location = glGetUniformLocation(program_id_m, name.data());
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
 }

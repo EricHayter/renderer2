@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string_view>
 #include "glad/gl.h"
+#include <glm/mat4x4.hpp>
 
 bool CheckShaderCompileSuccess(unsigned int shader_id);
 
@@ -17,6 +18,7 @@ class Shader {
     void SetInt(std::string_view name, std::initializer_list<int> values) const;
     void SetBool(std::string_view name, std::initializer_list<bool> values) const;
     void SetFloat(std::string_view name, std::initializer_list<float> values) const;
+    void SetMatrix4(std::string_view name, const glm::mat4& mat);
 
     private:
     unsigned int program_id_m;
