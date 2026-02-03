@@ -3,6 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include <cassert>
 #include <format>
 #include <stdexcept>
 
@@ -21,6 +22,28 @@ ImageData::~ImageData() {
     }
 }
 
+ImageData::ImageData(ImageData&& other)
+    : data{other.data},
+      height{other.height},
+      width{other.width},
+      nrchannels{other.nrchannels} {
+    other.height = 0;
+    other.width = 0;
+    other.nrchannels = 0;
+    other.data = nullptr;
+}
+
+ImageData& ImageData::operator=(ImageData&& other) {
+    if (&other != this) {
+        height = other.height;
+        width = other.width;
+        nrchannels = other.nrchannels;
+        data = other.data;
+        other.data = nullptr;
+    }
+    return *this;
+}
+
 Texture::Texture(const std::filesystem::path& path,
                  const Configuration& config) {
     ImageData image_data = ImageData(path);
@@ -29,8 +52,8 @@ Texture::Texture(const std::filesystem::path& path,
     // the data 4 bytes at a time by default.
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    glGenTextures(1, &texture_id_m);
-    glBindTexture(GL_TEXTURE_2D, texture_id_m);
+    glGenTextures(1, &*texture_id_m);
+    glBindTexture(GL_TEXTURE_2D, *texture_id_m);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, config.texture_wrap_s);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, config.texture_wrap_t);
@@ -62,3 +85,29 @@ Texture::Texture(const std::filesystem::path& path,
                  0, format, GL_UNSIGNED_BYTE, image_data.data);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
+
+Texture::~Texture() {
+    if (texture_id_m) glDeleteTextures(1, &*texture_id_m);
+}
+
+Texture::Texture(Texture&& other)
+    : texture_id_m{other.texture_id_m},
+      path{std::move(other.path)},
+      type{other.type} {
+    other.texture_id_m = std::nullopt;
+}
+
+Texture& Texture::operator=(Texture&& other) {
+    if (&other != this) {
+        texture_id_m = other.texture_id_m;
+        other.texture_id_m = std::nullopt;
+        path = std::move(other.path);
+        type = other.type;
+    }
+    return *this;
+}
+
+void Texture::Use() const {
+    assert(texture_id_m && "Calling Use() on invalid Texture object\n");
+    glBindTexture(GL_TEXTURE_2D, *texture_id_m);
+};
