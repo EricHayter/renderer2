@@ -16,4 +16,5 @@ target_link_libraries(renderer
     glad_gl_core_33
     glfw
     glm::glm
+    assimp
 )
