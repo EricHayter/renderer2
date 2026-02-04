@@ -3,6 +3,8 @@ add_executable(renderer
     shader.cpp
     texture.cpp
     window_management.cpp
+    mesh.cpp
+    model.cpp
 )
 
 target_include_directories(renderer
