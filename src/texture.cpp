@@ -35,10 +35,16 @@ ImageData::ImageData(ImageData&& other)
 
 ImageData& ImageData::operator=(ImageData&& other) {
     if (&other != this) {
+        // Free existing memory to prevent leak
+        if (data) {
+            stbi_image_free(data);
+        }
+
         height = other.height;
         width = other.width;
         nrchannels = other.nrchannels;
         data = other.data;
+
         other.data = nullptr;
     }
     return *this;
@@ -52,7 +58,9 @@ Texture::Texture(const std::filesystem::path& path,
     // the data 4 bytes at a time by default.
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    glGenTextures(1, &*texture_id_m);
+    unsigned int texture_id;
+    glGenTextures(1, &texture_id);
+    texture_id_m = texture_id;
     glBindTexture(GL_TEXTURE_2D, *texture_id_m);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, config.texture_wrap_s);
@@ -99,6 +107,11 @@ Texture::Texture(Texture&& other)
 
 Texture& Texture::operator=(Texture&& other) {
     if (&other != this) {
+        // Delete existing texture to prevent leak
+        if (texture_id_m) {
+            glDeleteTextures(1, &*texture_id_m);
+        }
+
         texture_id_m = other.texture_id_m;
         other.texture_id_m = std::nullopt;
         path = std::move(other.path);
