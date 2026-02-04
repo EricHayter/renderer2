@@ -13,7 +13,7 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "model.h"
 #include "shader.h"
-#include "window_management.h"
+#include "window.h"
 
 int main(int argc, const char** const argv) {
     if (argc != 2) {
@@ -27,15 +27,7 @@ int main(int argc, const char** const argv) {
         return -1;
     }
 
-    auto window_opt = window::InitWindow({});
-    if (!window_opt.has_value()) return -1;
-    GLFWwindow* window = *window_opt;
-
-    // Use glad to import everything for OpenGL
-    if (!gladLoadGL(glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
+    Window window({});
 
     Model model = Model(model_path);
     Shader shader = Shader("../shaders/vertex.vs", "../shaders/fragment.fs");
@@ -43,16 +35,17 @@ int main(int argc, const char** const argv) {
     glEnable(GL_DEPTH_TEST);
 
     // Render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!window.ShouldClose()) {
         // handling input
-        window::ProcessInput(window);
+        window.ProcessInput();
 
         // Rendering
         glClearColor(0.7f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        float aspect = window.GetWidth() / (float)window.GetHeight();
         glm::mat4 projection =
-            glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+            glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
         glm::mat4 view =
             glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
         shader.SetMatrix4("Translate", projection * view);
@@ -60,10 +53,8 @@ int main(int argc, const char** const argv) {
         model.Draw(shader);
 
         // swap buffers and poll for IO events
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        window.SwapBuffers();
+        window.PollEvents();
     }
-
-    glfwTerminate();
     return 0;
 }

@@ -2,7 +2,7 @@ add_executable(renderer
     main.cpp
     shader.cpp
     texture.cpp
-    window_management.cpp
+    window.cpp
     mesh.cpp
     model.cpp
 )
