@@ -49,6 +49,8 @@ class Texture {
 
     void Use() const;
     std::filesystem::path GetPath() const { return path; };
+    Type GetType() const { return type; };
+    std::optional<unsigned int> GetId() const { return texture_id_m; };
 
     private:
     std::optional<unsigned int> texture_id_m;
