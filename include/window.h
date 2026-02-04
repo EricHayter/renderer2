@@ -8,6 +8,7 @@
 // clang-format on
 
 #include <string>
+#include "camera.h"
 
 class Window {
     public:
@@ -29,7 +30,7 @@ class Window {
     int GetHeight() const;
     void PollEvents() const { glfwPollEvents(); }
     void SwapBuffers() const { glfwSwapBuffers(window_m); }
-    void ProcessInput();
+    void ProcessInput(Camera& camera);
 
     private:
     // Called automatically by GLFW when the window is resized.

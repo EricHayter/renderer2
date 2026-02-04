@@ -5,6 +5,7 @@ add_executable(renderer
     window.cpp
     mesh.cpp
     model.cpp
+    camera.cpp
 )
 
 target_include_directories(renderer

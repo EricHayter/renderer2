@@ -1,5 +1,6 @@
 #include "window.h"
 
+#include <chrono>
 #include <stdexcept>
 
 Window::Window(const WindowConfig& config) {
@@ -52,9 +53,29 @@ int Window::GetHeight() const {
     return h;
 }
 
-void Window::ProcessInput() {
+void Window::ProcessInput(Camera& camera) {
     if (glfwGetKey(window_m, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window_m, true);
+
+    // camera control
+    using namespace std::chrono;
+    static auto start = steady_clock::now();
+    auto current = steady_clock::now();
+    int delta_ms = duration_cast<milliseconds>(current - start).count();
+    start = current;
+
+    if (glfwGetKey(window_m, GLFW_KEY_W) == GLFW_PRESS ||
+        glfwGetKey(window_m, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.UpdatePosition(Camera::MoveDirection::FORWARD, delta_ms);
+    if (glfwGetKey(window_m, GLFW_KEY_A) == GLFW_PRESS ||
+        glfwGetKey(window_m, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.UpdatePosition(Camera::MoveDirection::LEFT, delta_ms);
+    if (glfwGetKey(window_m, GLFW_KEY_S) == GLFW_PRESS ||
+        glfwGetKey(window_m, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.UpdatePosition(Camera::MoveDirection::BACKWARD, delta_ms);
+    if (glfwGetKey(window_m, GLFW_KEY_D) == GLFW_PRESS ||
+        glfwGetKey(window_m, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.UpdatePosition(Camera::MoveDirection::RIGHT, delta_ms);
 }
 
 void Window::FramebufferSizeCallback(GLFWwindow* window, int width,

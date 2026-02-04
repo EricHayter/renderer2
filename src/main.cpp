@@ -34,10 +34,12 @@ int main(int argc, const char** const argv) {
 
     glEnable(GL_DEPTH_TEST);
 
+    Camera camera{};
+
     // Render loop
     while (!window.ShouldClose()) {
         // handling input
-        window.ProcessInput();
+        window.ProcessInput(camera);
 
         // Rendering
         glClearColor(0.7f, 0.3f, 0.3f, 1.0f);
@@ -46,9 +48,7 @@ int main(int argc, const char** const argv) {
         float aspect = window.GetWidth() / (float)window.GetHeight();
         glm::mat4 projection =
             glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-        glm::mat4 view =
-            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
-        shader.SetMatrix4("Translate", projection * view);
+        shader.SetMatrix4("Translate", projection * camera.GetViewMatrix());
 
         model.Draw(shader);
 
