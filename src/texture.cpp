@@ -12,7 +12,7 @@ ImageData::ImageData(const std::filesystem::path& path) {
     data = stbi_load(path.c_str(), &width, &height, &nrchannels, 0);
     if (!data) {
         throw std::runtime_error(
-            std::format("Failed to texture data from {}\n", path.c_str()));
+            std::format("Failed to load texture data from {}\n", path.c_str()));
     }
 }
 
@@ -50,8 +50,8 @@ ImageData& ImageData::operator=(ImageData&& other) {
     return *this;
 }
 
-Texture::Texture(const std::filesystem::path& path,
-                 const Configuration& config) {
+Texture::Texture(const std::filesystem::path& path, const Configuration& config)
+    : path{path}, type{config.texture_type} {
     ImageData image_data = ImageData(path);
 
     // stb loads in the data with NO padding OpenGL expects that it can read in

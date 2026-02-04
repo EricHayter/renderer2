@@ -82,8 +82,7 @@ void Mesh::Draw(Shader& shader) {
             }
         }
 
-        shader.SetInt(std::format("material.{}{}", texture_type_str, number),
-                      {(int)i});
+        shader.SetInt(std::format("{}{}", texture_type_str, number), {(int)i});
         textures[i]->Use();
     }
     glActiveTexture(GL_TEXTURE0);

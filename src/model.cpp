@@ -4,6 +4,7 @@
 #include <assimp/scene.h>
 #include <stb/stb_image.h>
 
+#include <algorithm>
 #include <assimp/Importer.hpp>
 #include <format>
 #include <iostream>
@@ -18,6 +19,7 @@
 Model::Model(const std::filesystem::path &path) { loadModel(path); }
 
 void Model::Draw(Shader &shader) {
+    shader.Use();
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
@@ -117,9 +119,14 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString texture_path_str;
         mat->GetTexture(type, i, &texture_path_str);
+        // Normalize path separators (handle Windows-style paths in .obj files)
+        std::string texture_path_string(texture_path_str.C_Str());
+        std::replace(texture_path_string.begin(), texture_path_string.end(),
+                     '\\', '/');
+
         bool skip = false;
         for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-            if (textures_loaded[j]->GetPath() == texture_path_str.C_Str()) {
+            if (textures_loaded[j]->GetPath() == texture_path_string) {
                 textures.push_back(textures_loaded[j].get());
                 skip = true;
                 break;
@@ -127,7 +134,7 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,
         }
         if (!skip) {  // if texture hasn't been loaded already, load it
             auto texture = std::make_unique<Texture>(
-                directory / texture_path_str.C_Str(),
+                directory / texture_path_string,
                 Texture::Configuration{.texture_type = texture_type});
             textures.push_back(texture.get());
             textures_loaded.push_back(std::move(texture));
