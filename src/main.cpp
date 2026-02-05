@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <chrono>
 #include <filesystem>
 #include <format>
 #include <glm/gtc/matrix_transform.hpp>
@@ -36,13 +37,19 @@ int main(int argc, const char** const argv) {
 
     Camera camera{};
 
+    // For tracking FPS
+    constexpr int FPS_REPORT_INTERVAL_MS = 5000;
+    int frames_displayed = 0;
+    auto past_time = std::chrono::steady_clock::now();
+
     // Render loop
     while (!window.ShouldClose()) {
         // handling input
         window.ProcessInput(camera);
 
         // Rendering
-        glClearColor(0.7f, 0.3f, 0.3f, 1.0f);
+        // glClearColor(0.7f, 0.3f, 0.3f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 model_mat = glm::mat4(1.0f);
@@ -71,6 +78,20 @@ int main(int argc, const char** const argv) {
         // swap buffers and poll for IO events
         window.SwapBuffers();
         window.PollEvents();
+
+        // Calculating FPS
+        frames_displayed++;
+        auto current_time = std::chrono::steady_clock::now();
+        int ms_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             current_time - past_time)
+                             .count();
+        if (ms_elapsed > FPS_REPORT_INTERVAL_MS) {
+            std::cout << std::format(
+                "[renderer2] Rendering at {} FPS\n",
+                (float)frames_displayed / ms_elapsed * 1000);
+            frames_displayed = 0;
+            past_time = std::chrono::steady_clock::now();
+        }
     }
     return 0;
 }
