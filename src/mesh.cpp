@@ -72,17 +72,17 @@ void Mesh::Draw(Shader& shader) {
         switch (texture_type) {
             case Texture::Type::DIFFUSE: {
                 number = std::to_string(diffuseNr++);
-                texture_type_str = "diffuse";
+                texture_type_str = "Diffuse";
                 break;
             }
             case Texture::Type::SPECULAR: {
                 number = std::to_string(specularNr++);
-                texture_type_str = "specular";
+                texture_type_str = "Specular";
                 break;
             }
         }
 
-        shader.SetInt(std::format("{}{}", texture_type_str, number), {(int)i});
+        shader.SetInt(std::format("u{}{}", texture_type_str, number), {(int)i});
         textures[i]->Use();
     }
     glActiveTexture(GL_TEXTURE0);

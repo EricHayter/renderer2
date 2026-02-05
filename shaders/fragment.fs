@@ -1,26 +1,26 @@
 #version 330 core
 
-in vec3 FragPos;
-in vec3 VertexNormal;
-in vec2 TextureCoords;
+in vec3 vFragPos;
+in vec3 vNormal;
+in vec2 vTexCoords;
 
-uniform vec3 lightPosition;
-uniform sampler2D diffuse1;
-uniform sampler2D specular1;
+uniform vec3 uLightPosition;
+uniform sampler2D uDiffuse1;
+uniform sampler2D uSpecular1;
 
 out vec4 FragColor;
 
 // Calculations done in view space
 void main() {
-    // light_dir is going away from the fragment to the light
-    vec3 light_dir = normalize(lightPosition - FragPos);
-    // keep lightcolor as white for now. Might be good to set the color in a uniform
-    vec4 light_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    // lightDir is going away from the fragment to the light
+    vec3 lightDir = normalize(uLightPosition - vFragPos);
+    // keep lightColor as white for now. Might be good to set the color in a uniform
+    vec4 lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Diffusion math
-    vec4 diffuse_color = texture(diffuse1, TextureCoords);
-    float intensity = max(dot(light_dir, normalize(VertexNormal)), 0.0f);
-    vec4 diffuse =  diffuse_color * (light_color * intensity);
+    vec4 diffuseColor = texture(uDiffuse1, vTexCoords);
+    float intensity = max(dot(lightDir, normalize(vNormal)), 0.0f);
+    vec4 diffuse = diffuseColor * (lightColor * intensity);
 
     FragColor = diffuse;
 }

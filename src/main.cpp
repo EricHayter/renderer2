@@ -46,25 +46,25 @@ int main(int argc, const char** const argv) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 model_mat = glm::mat4(1.0f);
-        shader.SetMatrix4("model", model_mat);
+        shader.SetMatrix4("uModel", model_mat);
 
         glm::mat4 view_mat = camera.GetViewMatrix();
-        shader.SetMatrix4("view", view_mat);
+        shader.SetMatrix4("uView", view_mat);
 
         glm::vec3 light_pos = glm::vec3(0.0f, 0.0f, 10.0f);
         light_pos =
             view_mat * glm::vec4(light_pos.x, light_pos.y, light_pos.z, 1.0f);
-        shader.SetFloat("lightPosition",
+        shader.SetFloat("uLightPosition",
                         {light_pos.x, light_pos.y, light_pos.z});
 
         glm::mat4 normal_mat =
             glm::transpose(glm::inverse(view_mat * model_mat));
-        shader.SetMatrix4("normalMat", normal_mat);
+        shader.SetMatrix4("uNormalMatrix", normal_mat);
 
         float aspect_ratio = window.GetWidth() / (float)window.GetHeight();
         glm::mat4 projection_mat =
             glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
-        shader.SetMatrix4("projection", projection_mat);
+        shader.SetMatrix4("uProjection", projection_mat);
 
         model.Draw(shader);
 
