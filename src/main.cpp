@@ -45,10 +45,15 @@ int main(int argc, const char** const argv) {
         glClearColor(0.7f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        float aspect = window.GetWidth() / (float)window.GetHeight();
-        glm::mat4 projection =
-            glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-        shader.SetMatrix4("Translate", projection * camera.GetViewMatrix());
+        glm::mat4 model_mat = glm::mat4(1.0f);
+        shader.SetMatrix4("model", model_mat);
+
+        shader.SetMatrix4("view", camera.GetViewMatrix());
+
+        float aspect_ratio = window.GetWidth() / (float)window.GetHeight();
+        glm::mat4 projection_mat =
+            glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
+        shader.SetMatrix4("projection", projection_mat);
 
         model.Draw(shader);
 
