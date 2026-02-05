@@ -48,7 +48,18 @@ int main(int argc, const char** const argv) {
         glm::mat4 model_mat = glm::mat4(1.0f);
         shader.SetMatrix4("model", model_mat);
 
-        shader.SetMatrix4("view", camera.GetViewMatrix());
+        glm::mat4 view_mat = camera.GetViewMatrix();
+        shader.SetMatrix4("view", view_mat);
+
+        glm::vec3 light_pos = glm::vec3(0.0f, 0.0f, 10.0f);
+        light_pos =
+            view_mat * glm::vec4(light_pos.x, light_pos.y, light_pos.z, 1.0f);
+        shader.SetFloat("lightPosition",
+                        {light_pos.x, light_pos.y, light_pos.z});
+
+        glm::mat4 normal_mat =
+            glm::transpose(glm::inverse(view_mat * model_mat));
+        shader.SetMatrix4("normalMat", normal_mat);
 
         float aspect_ratio = window.GetWidth() / (float)window.GetHeight();
         glm::mat4 projection_mat =
