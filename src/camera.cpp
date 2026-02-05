@@ -1,10 +1,12 @@
 #include "camera.h"
 
-#include "glm/geometric.hpp"
 #include <algorithm>
 
+#include "glm/geometric.hpp"
+
 glm::mat4 Camera::GetViewMatrix() {
-    return glm::lookAt(position, position + pointing_at, glm::vec3(0.0f, 1.0f, 0.0f));
+    return glm::lookAt(position, position + pointing_at,
+                       glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void Camera::UpdatePosition(Camera::MoveDirection direction, float delta_ms) {
@@ -20,12 +22,14 @@ void Camera::UpdatePosition(Camera::MoveDirection direction, float delta_ms) {
             break;
         }
         case MoveDirection::RIGHT: {
-            glm::vec3 right = glm::normalize(glm::cross(pointing_at, glm::vec3(0.0f, 1.0f, 0.0f)));
+            glm::vec3 right = glm::normalize(
+                glm::cross(pointing_at, glm::vec3(0.0f, 1.0f, 0.0f)));
             position += right * movement;
             break;
         }
         case MoveDirection::LEFT: {
-            glm::vec3 right = glm::normalize(glm::cross(pointing_at, glm::vec3(0.0f, 1.0f, 0.0f)));
+            glm::vec3 right = glm::normalize(
+                glm::cross(pointing_at, glm::vec3(0.0f, 1.0f, 0.0f)));
             position -= right * movement;
             break;
         }
@@ -49,9 +53,8 @@ void Camera::UpdatePointingDirection(float delta_x, float delta_y) {
     pitch = std::clamp(pitch, -89.0f, 89.0f);
 
     // Convert spherical coordinates (yaw, pitch) to direction vector
-    pointing_at = glm::normalize(glm::vec3(
-        cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-        sin(glm::radians(pitch)),
-        sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-    ));
+    pointing_at = glm::normalize(
+        glm::vec3(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+                  sin(glm::radians(pitch)),
+                  sin(glm::radians(yaw)) * cos(glm::radians(pitch))));
 }

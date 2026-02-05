@@ -1,8 +1,8 @@
 #include "window.h"
 
 #include <chrono>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 Window::Window(const WindowConfig& config) {
     bool first_window = (instance_count == 0);
