@@ -8,6 +8,7 @@
 // clang-format on
 
 #include <string>
+#include <chrono>
 #include "camera.h"
 
 class Window {
@@ -39,4 +40,11 @@ class Window {
 
     GLFWwindow* window_m;
     static inline int instance_count = 0;
+
+    // Time tracking for delta calculation
+    std::chrono::steady_clock::time_point last_time = std::chrono::steady_clock::now();
+
+    // Mouse tracking for delta calculation
+    double last_mouse_x = 400.0;
+    double last_mouse_y = 300.0;
 };
