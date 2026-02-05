@@ -12,6 +12,12 @@ class Model
     public:
         Model(const std::filesystem::path& path);
         void Draw(Shader &shader);
+
+        // Stats
+        size_t GetVertexCount() const;
+        size_t GetTriangleCount() const;
+        size_t GetMeshCount() const { return meshes.size(); }
+
     private:
         // model data
         std::vector<Mesh> meshes;

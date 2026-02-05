@@ -42,6 +42,11 @@ int main(int argc, const char** const argv) {
     int frames_displayed = 0;
     auto past_time = std::chrono::steady_clock::now();
 
+    // Model stats
+    size_t vertex_count = model.GetVertexCount();
+    size_t triangle_count = model.GetTriangleCount();
+    size_t mesh_count = model.GetMeshCount();
+
     // Render loop
     while (!window.ShouldClose()) {
         // handling input
@@ -86,9 +91,10 @@ int main(int argc, const char** const argv) {
                              current_time - past_time)
                              .count();
         if (ms_elapsed > FPS_REPORT_INTERVAL_MS) {
+            float fps = frames_displayed / (ms_elapsed / 1000.0f);
             std::cout << std::format(
-                "[renderer2] Rendering at {} FPS\n",
-                (float)frames_displayed / ms_elapsed * 1000);
+                "[renderer2] {:.1f} FPS | {} vertices | {} triangles | {} meshes\n",
+                fps, vertex_count, triangle_count, mesh_count);
             frames_displayed = 0;
             past_time = std::chrono::steady_clock::now();
         }

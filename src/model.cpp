@@ -23,6 +23,22 @@ void Model::Draw(Shader &shader) {
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
+size_t Model::GetVertexCount() const {
+    size_t total = 0;
+    for (const auto& mesh : meshes) {
+        total += mesh.GetVertices().size();
+    }
+    return total;
+}
+
+size_t Model::GetTriangleCount() const {
+    size_t total = 0;
+    for (const auto& mesh : meshes) {
+        total += mesh.GetIndices().size() / 3;
+    }
+    return total;
+}
+
 void Model::loadModel(const std::filesystem::path &path) {
     Assimp::Importer import;
     const aiScene *scene =
