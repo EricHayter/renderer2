@@ -12,6 +12,9 @@ out vec4 FragColor;
 
 // Calculations done in view space
 void main() {
+    float shininess = 32.0f;
+    float specularStrength = 0.5f;
+
     // lightDir is going away from the fragment to the light
     vec3 lightDir = normalize(uLightPosition - vFragPos);
     // keep lightColor as white for now. Might be good to set the color in a uniform
@@ -22,5 +25,10 @@ void main() {
     float intensity = max(dot(lightDir, normalize(vNormal)), 0.0f);
     vec4 diffuse = diffuseColor * (lightColor * intensity);
 
-    FragColor = diffuse;
+    // Specular math
+    vec4 specularColor = texture(uSpecular1, vTexCoords);
+    intensity = max(dot(reflect(-lightDir, vNormal), normalize(-vFragPos)), 0.0f);
+    vec4 specular = specularColor * (lightColor * pow(intensity, shininess) * specularStrength);
+
+    FragColor = diffuse + specular;
 }
