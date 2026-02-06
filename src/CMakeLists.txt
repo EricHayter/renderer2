@@ -20,4 +20,5 @@ target_link_libraries(renderer
     glfw
     glm::glm
     assimp
+    imgui
 )

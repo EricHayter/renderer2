@@ -16,6 +16,10 @@
 #include "shader.h"
 #include "window.h"
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 int main(int argc, const char** const argv) {
     if (argc != 2) {
         std::cout << std::format("Usage: {} FILE\n", argv[0]);
@@ -29,6 +33,16 @@ int main(int argc, const char** const argv) {
     }
 
     Window window({});
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window.GetWindow(), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init();
 
     Model model = Model(model_path);
     Shader shader = Shader("../shaders/vertex.vs", "../shaders/fragment.fs");
@@ -51,6 +65,10 @@ int main(int argc, const char** const argv) {
     while (!window.ShouldClose()) {
         // handling input
         window.ProcessInput(camera);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow();
 
         // Rendering
         // glClearColor(0.7f, 0.3f, 0.3f, 1.0f);
@@ -80,6 +98,9 @@ int main(int argc, const char** const argv) {
 
         model.Draw(shader);
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // swap buffers and poll for IO events
         window.SwapBuffers();
         window.PollEvents();
@@ -99,5 +120,9 @@ int main(int argc, const char** const argv) {
             past_time = std::chrono::steady_clock::now();
         }
     }
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     return 0;
 }

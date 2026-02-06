@@ -27,6 +27,7 @@ class Window {
     Window& operator=(const Window&) = delete;
 
     bool ShouldClose() const { return glfwWindowShouldClose(window_m); }
+    GLFWwindow* GetWindow() const { return window_m; }
     int GetWidth() const;
     int GetHeight() const;
     void PollEvents() const { glfwPollEvents(); }
