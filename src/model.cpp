@@ -1,19 +1,18 @@
 #include "model.h"
 
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
-#include <stb/stb_image.h>
-
 #include <algorithm>
-#include <assimp/Importer.hpp>
 #include <format>
 #include <iostream>
 
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
+#include "stb/stb_image.h"
 #include "texture.h"
 
 // clang-format off
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include "glad/gl.h"
+#include "GLFW/glfw3.h"
 // clang-format on
 
 Model::Model(const std::filesystem::path &path) { loadModel(path); }
@@ -25,7 +24,7 @@ void Model::Draw(Shader &shader) {
 
 size_t Model::GetVertexCount() const {
     size_t total = 0;
-    for (const auto& mesh : meshes) {
+    for (const auto &mesh : meshes) {
         total += mesh.GetVertices().size();
     }
     return total;
@@ -33,7 +32,7 @@ size_t Model::GetVertexCount() const {
 
 size_t Model::GetTriangleCount() const {
     size_t total = 0;
-    for (const auto& mesh : meshes) {
+    for (const auto &mesh : meshes) {
         total += mesh.GetIndices().size() / 3;
     }
     return total;

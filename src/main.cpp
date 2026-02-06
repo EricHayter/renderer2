@@ -1,24 +1,23 @@
 // clang format will change the input order which MUST be in this specific
 // order
 // clang-format off
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include "glad/gl.h"
+#include "GLFW/glfw3.h"
 // clang-format on
 
 #include <chrono>
 #include <filesystem>
 #include <format>
-#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 #include "glm/ext/matrix_clip_space.hpp"
-#include "model.h"
-#include "shader.h"
-#include "window.h"
-
+#include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "model.h"
+#include "shader.h"
+#include "window.h"
 
 int main(int argc, const char** const argv) {
     if (argc != 2) {
@@ -37,11 +36,16 @@ int main(int argc, const char** const argv) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |=
+        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |=
+        ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window.GetWindow(), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplGlfw_InitForOpenGL(
+        window.GetWindow(),
+        true);  // Second param install_callback=true will install GLFW
+                // callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
 
     Model model = Model(model_path);
@@ -114,7 +118,8 @@ int main(int argc, const char** const argv) {
         if (ms_elapsed > FPS_REPORT_INTERVAL_MS) {
             float fps = frames_displayed / (ms_elapsed / 1000.0f);
             std::cout << std::format(
-                "[renderer2] {:.1f} FPS | {} vertices | {} triangles | {} meshes\n",
+                "[renderer2] {:.1f} FPS | {} vertices | {} triangles | {} "
+                "meshes\n",
                 fps, vertex_count, triangle_count, mesh_count);
             frames_displayed = 0;
             past_time = std::chrono::steady_clock::now();

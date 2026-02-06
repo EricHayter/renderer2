@@ -1,15 +1,15 @@
 #include "texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
 #include <cassert>
 #include <format>
 #include <stdexcept>
 
+#include "stb/stb_image.h"
+
 ImageData::ImageData(const std::filesystem::path& path) {
-// TODO This doesn't seem to be needed for actual texture files...
-//    stbi_set_flip_vertically_on_load(true);
+    // TODO This doesn't seem to be needed for actual texture files...
+    //    stbi_set_flip_vertically_on_load(true);
     data = stbi_load(path.c_str(), &width, &height, &nrchannels, 0);
     if (!data) {
         throw std::runtime_error(

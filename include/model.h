@@ -4,7 +4,7 @@
 #include "mesh.h"
 #include <filesystem>
 #include <vector>
-#include <assimp/scene.h>
+#include "assimp/scene.h"
 #include "texture.h"
 
 class Model

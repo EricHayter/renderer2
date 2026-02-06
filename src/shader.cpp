@@ -3,17 +3,18 @@
 // clang format will change the input order which MUST be in this specific
 // order
 // clang-format off
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include "glad/gl.h"
+#include "GLFW/glfw3.h"
 // clang-format on
 
 #include <filesystem>
 #include <fstream>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 bool CheckShaderCompileSuccess(unsigned int shader_id) {
     int success;
