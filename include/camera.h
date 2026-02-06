@@ -14,12 +14,12 @@ struct Camera {
 
     glm::mat4 GetViewMatrix();
     void UpdatePosition(MoveDirection direction, float delta_ms);
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
 
     void UpdatePointingDirection(float delta_x, float delta_y);
 
     // noramlized vector for where the camera is currently pointing
-    glm::vec3 pointing_at = glm::vec3(0.0f, 0.0f, 1.0f);
+    glm::vec3 pointing_at = glm::vec3(0.0f, 0.0f, -1.0f);
     float fov = glm::radians(45.0f);
 
     // Camera angles in degrees
