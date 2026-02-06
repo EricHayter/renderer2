@@ -67,7 +67,7 @@
         <mxCell id="beTZ2ZbazV9wxhCgPUfS-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontColor=#1D3557;" value="The scene object is pretty much just encapsulating the classes bellow with some extra fields, such as the model transformation matrix, and maybe some parameters for background color, light objects, etc...." vertex="1">
           <mxGeometry height="60" width="210" x="550" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="beTZ2ZbazV9wxhCgPUfS-23" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontColor=#1D3557;" value="&lt;h1&gt;renderer2 arhitecture&lt;/h1&gt;" vertex="1">
+        <mxCell id="beTZ2ZbazV9wxhCgPUfS-23" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontColor=#1D3557;" value="&lt;h1&gt;renderer2 architecture&lt;/h1&gt;" vertex="1">
           <mxGeometry height="60" width="280" x="420" y="30" as="geometry" />
         </mxCell>
       </root>
