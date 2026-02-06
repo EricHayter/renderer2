@@ -1,0 +1,44 @@
+name: Export Draw.io Diagrams
+
+on:
+  push:
+    paths:
+      - 'docs/diagrams/*.drawio'
+      - '.github/workflows/drawio-export.yml'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  export-diagrams:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for proper commits
+
+      - name: Export Draw.io files to SVG
+        uses: rlespinasse/drawio-export-action@v2
+        with:
+          path: docs/diagrams
+          format: svg
+          transparent: false
+          action-mode: all
+          remove-page-suffix: true
+
+      - name: Commit exported SVGs
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/diagrams/*.svg || true
+          if ! git diff --staged --quiet; then
+            git commit -m "Update exported diagrams [skip ci]"
+          fi
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
