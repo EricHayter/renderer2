@@ -28,7 +28,7 @@ cmake --build .
 
 ## Architecture
 
-![Architecture Diagram](docs/diagrams/export/architecture.svg)
+![Architecture Diagram](docs/diagrams/export/architecture.png)
 
 The renderer is organized into distinct classes handling windowing, rendering, models, and materials. See the diagram above for the relationships between major components.
 

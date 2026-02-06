@@ -19,20 +19,20 @@ jobs:
         with:
           fetch-depth: 0  # Full history for proper commits
 
-      - name: Export Draw.io files to SVG
+      - name: Export Draw.io files to PNG
         uses: rlespinasse/drawio-export-action@v2
         with:
           path: docs/diagrams
-          format: svg
+          format: png
           transparent: false
           action-mode: all
           remove-page-suffix: true
 
-      - name: Commit exported SVGs
+      - name: Commit exported PNGs
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add docs/diagrams/*.svg || true
+          git add docs/diagrams/export/*.png || true
           if ! git diff --staged --quiet; then
             git commit -m "Update exported diagrams [skip ci]"
           fi
