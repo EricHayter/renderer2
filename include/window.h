@@ -46,6 +46,6 @@ class Window {
     std::chrono::steady_clock::time_point last_time = std::chrono::steady_clock::now();
 
     // Mouse tracking for delta calculation
-    double last_mouse_x = 400.0;
-    double last_mouse_y = 300.0;
+    std::optional<double> last_mouse_x;
+    std::optional<double> last_mouse_y;
 };

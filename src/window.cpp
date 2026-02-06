@@ -1,7 +1,6 @@
 #include "window.h"
 
 #include <chrono>
-#include <iostream>
 #include <stdexcept>
 
 Window::Window(const WindowConfig& config) {
@@ -22,7 +21,6 @@ Window::Window(const WindowConfig& config) {
     if (window_m == nullptr) {
         throw std::runtime_error("Failed to create GLFW window");
     }
-    glfwSetInputMode(window_m, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwMakeContextCurrent(window_m);
 
     if (first_window) {
@@ -84,16 +82,27 @@ void Window::ProcessInput(Camera& camera) {
         camera.UpdatePosition(Camera::MoveDirection::DOWN, delta_ms);
 
     // Mouse look
-    double current_x, current_y;
-    glfwGetCursorPos(window_m, &current_x, &current_y);
+    if (glfwGetMouseButton(window_m, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        double current_x, current_y;
+        glfwGetCursorPos(window_m, &current_x, &current_y);
+        if (last_mouse_x && last_mouse_y) {
+            double delta_x = current_x - *last_mouse_x;
+            double delta_y = current_y - *last_mouse_y;
 
-    double delta_x = current_x - last_mouse_x;
-    double delta_y = current_y - last_mouse_y;
+            last_mouse_x = current_x;
+            last_mouse_y = current_y;
 
-    last_mouse_x = current_x;
-    last_mouse_y = current_y;
-
-    camera.UpdatePointingDirection(delta_x, delta_y);
+            camera.UpdatePointingDirection(delta_x, delta_y);
+        } else {
+            glfwSetInputMode(window_m, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            last_mouse_x = current_x;
+            last_mouse_y = current_y;
+        }
+    } else if (last_mouse_x && last_mouse_y) {
+        glfwSetInputMode(window_m, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        last_mouse_x = std::nullopt;
+        last_mouse_y = std::nullopt;
+    }
 }
 
 void Window::FramebufferSizeCallback(GLFWwindow* window, int width,
