@@ -1,2 +1,6 @@
 build
 .cache
+
+# Draw.io temporary files
+docs/diagrams/.*
+
