@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <vector>
 #include "assimp/scene.h"
+#include "assimp/Importer.hpp"
 #include "texture.h"
 
 class Model
@@ -21,8 +22,12 @@ class Model
     private:
         // model data
         std::vector<Mesh> meshes;
-        std::filesystem::path directory;
+        std::filesystem::path directory_m;
         std::vector<std::unique_ptr<Texture>> textures_loaded;
+
+        // Keep importer alive - scene_m points into its memory
+        Assimp::Importer importer_m;
+        const aiScene* scene_m;
 
         void loadModel(const std::filesystem::path& path);
         void processNode(aiNode *node, const aiScene *scene);

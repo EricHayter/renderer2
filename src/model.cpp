@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <format>
 #include <iostream>
+#include <stdexcept>
 
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
@@ -34,18 +35,18 @@ size_t Model::GetTriangleCount() const {
 }
 
 void Model::loadModel(const std::filesystem::path &path) {
-    Assimp::Importer import;
-    const aiScene *scene =
-        import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    scene_m =
+        importer_m.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
-        !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
+    if (!scene_m || scene_m->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
+        !scene_m->mRootNode) {
+        std::cout << "ERROR::ASSIMP::" << importer_m.GetErrorString()
+                  << std::endl;
         return;
     }
-    directory = path.parent_path();
+    directory_m = path.parent_path();
 
-    processNode(scene->mRootNode, scene);
+    processNode(scene_m->mRootNode, scene_m);
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene) {
@@ -127,27 +128,40 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,
 
     std::vector<Texture *> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
-        aiString texture_path_str;
-        mat->GetTexture(type, i, &texture_path_str);
+        aiString texture_name;
+        mat->GetTexture(type, i, &texture_name);
         // Normalize path separators (handle Windows-style paths in .obj files)
-        std::string texture_path_string(texture_path_str.C_Str());
-        std::replace(texture_path_string.begin(), texture_path_string.end(),
+        std::string texture_name_string(texture_name.C_Str());
+        std::replace(texture_name_string.begin(), texture_name_string.end(),
                      '\\', '/');
 
         bool skip = false;
         for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-            if (textures_loaded[j]->GetPath() == texture_path_string) {
+            if (textures_loaded[j]->IsExternalTexure() &&
+                textures_loaded[j]->GetPath() == texture_name_string) {
                 textures.push_back(textures_loaded[j].get());
                 skip = true;
                 break;
             }
         }
         if (!skip) {  // if texture hasn't been loaded already, load it
-            auto texture = std::make_unique<Texture>(
-                directory / texture_path_string,
-                Texture::Configuration{.texture_type = texture_type});
-            textures.push_back(texture.get());
-            textures_loaded.push_back(std::move(texture));
+            // Texture is internal to the model file
+            if (texture_name_string.starts_with("*")) {
+                int index = std::stoi(texture_name_string.substr(1));
+                aiTexture *embedded = scene_m->mTextures[index];
+                auto texture = std::make_unique<Texture>(
+                    embedded, texture_name_string,
+                    Texture::Configuration{.texture_type = texture_type});
+                textures.push_back(texture.get());
+                textures_loaded.push_back(std::move(texture));
+            } else {
+                // texture is external to the model file (likely in textures/)
+                auto texture = std::make_unique<Texture>(
+                    directory_m / texture_name_string, texture_name_string,
+                    Texture::Configuration{.texture_type = texture_type});
+                textures.push_back(texture.get());
+                textures_loaded.push_back(std::move(texture));
+            }
         }
     }
     return textures;

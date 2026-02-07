@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Configure Assimp to only build needed importers
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)     # .obj and .mtl
+set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)    # .gltf and .glb
+
 add_subdirectory(thirdparty)
 add_subdirectory(src)
 

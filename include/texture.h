@@ -7,9 +7,12 @@
 
 #include <filesystem>
 #include <optional>
+#include <string_view>
+#include "assimp/texture.h"
 
 struct ImageData {
     ImageData(const std::filesystem::path& path);
+    ImageData(const unsigned char* loaded_data, std::size_t data_length);
     ~ImageData();
 
     ImageData(const ImageData& other) = delete;
@@ -38,7 +41,8 @@ class Texture {
       Type texture_type = Type::DIFFUSE;
     };
 
-    Texture(const std::filesystem::path& path, const Configuration& config);
+    Texture(const std::filesystem::path& path, std::string_view name, const Configuration& config);
+    Texture(const aiTexture* texture, std::string_view name, const Configuration& config);
     Texture() = default;
     ~Texture();
 
@@ -48,12 +52,14 @@ class Texture {
     Texture& operator=(Texture&& other);
 
     void Use() const;
-    std::filesystem::path GetPath() const { return path; };
-    Type GetType() const { return type; };
+    bool IsExternalTexure() const { return path_m.has_value(); }
+    std::filesystem::path GetPath() const { return *path_m; };
+    Type GetType() const { return type_m; };
     std::optional<unsigned int> GetId() const { return texture_id_m; };
 
     private:
     std::optional<unsigned int> texture_id_m;
-    std::filesystem::path path;
-    Type type;
+    std::string name_m;
+    std::optional<std::filesystem::path> path_m;
+    Type type_m;
 };
