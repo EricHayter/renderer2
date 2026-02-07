@@ -10,11 +10,6 @@
 #include "stb/stb_image.h"
 #include "texture.h"
 
-// clang-format off
-#include "glad/gl.h"
-#include "GLFW/glfw3.h"
-// clang-format on
-
 Model::Model(const std::filesystem::path &path) { loadModel(path); }
 
 void Model::Draw(Shader &shader) {
