@@ -10,6 +10,7 @@
 #include <string>
 #include <chrono>
 #include "camera.h"
+#include <utility>
 
 class Window {
     public:
@@ -28,8 +29,9 @@ class Window {
 
     bool ShouldClose() const { return glfwWindowShouldClose(window_m); }
     GLFWwindow* GetWindow() const { return window_m; }
-    int GetWidth() const;
-    int GetHeight() const;
+
+    // returns (width, height) of screen
+    std::pair<int, int> GetDimensions() const;
     void PollEvents() const { glfwPollEvents(); }
     void SwapBuffers() const { glfwSwapBuffers(window_m); }
     void ProcessInput(Camera& camera);

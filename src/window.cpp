@@ -41,16 +41,10 @@ Window::~Window() {
     }
 }
 
-int Window::GetWidth() const {
+std::pair<int, int> Window::GetDimensions() const {
     int w, h;
     glfwGetFramebufferSize(window_m, &w, &h);
-    return w;
-}
-
-int Window::GetHeight() const {
-    int w, h;
-    glfwGetFramebufferSize(window_m, &w, &h);
-    return h;
+    return {w, h};
 }
 
 void Window::ProcessInput(Camera& camera) {
