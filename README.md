@@ -26,6 +26,26 @@ cmake --build .
 ./src/renderer ../models/plant.obj
 ```
 
+### Supported Model Formats
+
+By default, the renderer supports:
+- **OBJ** (`.obj` and `.mtl`) - Wavefront OBJ format with external textures
+- **glTF** (`.gltf` and `.glb`) - GL Transmission Format with embedded textures
+
+To enable additional formats (FBX, COLLADA, Blender, STL, etc.), edit `CMakeLists.txt` and uncomment the desired importer. For example, to add FBX support:
+
+```cmake
+set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+```
+
+See `CMakeLists.txt` for the full list of available importers. After changing importers, rebuild from scratch:
+```bash
+cd build
+rm -rf *
+cmake ..
+cmake --build .
+```
+
 ## Architecture
 
 ![Architecture Diagram](docs/diagrams/export/architecture.png)
@@ -40,7 +60,7 @@ This project uses the following third-party libraries:
 - **GLFW** - Cross-platform windowing, input handling, and OpenGL context creation
 - **glad** - OpenGL function loader generated for OpenGL 3.3 Core Profile
 - **GLM** - Header-only mathematics library providing vector and matrix operations matching GLSL
-- **Assimp** - Asset import library for loading 3D models (.obj, .fbx, etc.) with material and texture support
+- **Assimp** - Asset import library for loading 3D models (currently: OBJ, glTF/GLB) with material and texture support
 - **stb_image** - Single-header image loading library for texture data (PNG, JPG, etc.)
 - **ImGui** - Immediate mode GUI library for runtime debugging and parameter tweaking
 - **CMake** - Build system for managing compilation across platforms
