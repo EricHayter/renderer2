@@ -1,11 +1,11 @@
 #include "shader.h"
 
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <format>
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -15,8 +15,7 @@ bool CheckShaderCompileSuccess(unsigned int shader_id) {
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader_id, sizeof(infoLog), nullptr, infoLog);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n"
-                  << infoLog << "\n";
+        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << "\n";
     }
     return success;
 }
@@ -25,13 +24,17 @@ Shader::Shader(const std::filesystem::path& vertex_path,
                const std::filesystem::path& fragment_path) {
     if (!std::filesystem::exists(vertex_path)) {
         throw std::filesystem::filesystem_error(
-            std::format("Couldn't find vertex shader file '{}'", vertex_path.c_str()),  vertex_path,
+            std::format("Couldn't find vertex shader file '{}'",
+                        vertex_path.c_str()),
+            vertex_path,
             std::make_error_code(std::errc::no_such_file_or_directory));
     }
 
     if (!std::filesystem::exists(fragment_path)) {
         throw std::filesystem::filesystem_error(
-            std::format("Couldn't find fragment shader file '{}'", fragment_path.c_str()),  fragment_path,
+            std::format("Couldn't find fragment shader file '{}'",
+                        fragment_path.c_str()),
+            fragment_path,
             std::make_error_code(std::errc::no_such_file_or_directory));
     }
 

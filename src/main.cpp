@@ -3,9 +3,7 @@
 #include <format>
 #include <iostream>
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include "debug_window.h"
 #include "scene.h"
 #include "shader.h"
 #include "window.h"
@@ -17,29 +15,13 @@ int main(int argc, const char** const argv) {
     }
     std::filesystem::path model_path = argv[1];
     if (!std::filesystem::exists(model_path)) {
-        std::cout << std::format("Could'nt find model at '{}'\n",
+        std::cout << std::format("Couldn't find model at '{}'\n",
                                  model_path.string());
         return -1;
     }
 
     Window window({});
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |=
-        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    io.ConfigFlags |=
-        ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(
-        window.GetWindow(),
-        true);  // Second param install_callback=true will install GLFW
-                // callbacks and chain to existing ones.
-    ImGui_ImplOpenGL3_Init();
-
+    DebugWindow debug_window(window.GetGLFWWindow());
     Scene scene = Scene(model_path);
     Shader shader = Shader("../shaders/vertex.vs", "../shaders/fragment.fs");
 
@@ -59,17 +41,9 @@ int main(int argc, const char** const argv) {
     while (!window.ShouldClose()) {
         // handling input
         window.ProcessInput(scene.GetCamera());
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::ShowDemoWindow();
-
-        // Rendering
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         scene.Draw(shader, window);
+        debug_window.Draw(scene);
 
         // swap buffers and poll for IO events
         window.SwapBuffers();
@@ -92,9 +66,6 @@ int main(int argc, const char** const argv) {
         //            past_time = std::chrono::steady_clock::now();
         //        }
     }
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 
     return 0;
 }

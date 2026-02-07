@@ -17,6 +17,8 @@ void Scene::Draw(Shader& shader, const Window& window) {
     shader.SetFloat("uLightPosition",
                     {transformed_light_pos.x, transformed_light_pos.y,
                      transformed_light_pos.z});
+    shader.SetFloat("uLightColor",
+                    {light_color_m.r, light_color_m.g, light_color_m.b});
 
     // TODO in the future this is going to be a member of the model objects I
     // have

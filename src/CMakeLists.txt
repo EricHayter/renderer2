@@ -7,6 +7,7 @@ add_executable(renderer
     model.cpp
     camera.cpp
     scene.cpp
+    debug_window.cpp
 )
 
 target_include_directories(renderer

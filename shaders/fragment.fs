@@ -5,6 +5,7 @@ in vec3 vNormal;
 in vec2 vTexCoords;
 
 uniform vec3 uLightPosition;
+uniform vec3 uLightColor;
 uniform sampler2D uDiffuse1;
 uniform sampler2D uSpecular1;
 
@@ -14,11 +15,10 @@ out vec4 FragColor;
 void main() {
     float shininess = 32.0f;
     float specularStrength = 0.5f;
+    vec4 lightColor = vec4(uLightColor, 1.0f);
 
     // lightDir is going away from the fragment to the light
     vec3 lightDir = normalize(uLightPosition - vFragPos);
-    // keep lightColor as white for now. Might be good to set the color in a uniform
-    vec4 lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Diffusion math
     vec4 diffuseColor = texture(uDiffuse1, vTexCoords);
