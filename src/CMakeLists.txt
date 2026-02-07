@@ -6,6 +6,7 @@ add_executable(renderer
     mesh.cpp
     model.cpp
     camera.cpp
+    scene.cpp
 )
 
 target_include_directories(renderer
