@@ -18,6 +18,7 @@ class DebugWindow {
     void Draw(Scene& scene);
 
     void FPSMenu();
+    void CameraMenu(Scene& scene);
     void LightingMenu(Scene& scene);
     void ModelsMenu(Scene& scene);
 

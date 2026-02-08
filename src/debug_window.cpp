@@ -1,5 +1,6 @@
 #include "debug_window.h"
 
+#include "glm/gtc/constants.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -47,6 +48,7 @@ void DebugWindow::Draw(Scene& scene) {
     }
 
     FPSMenu();
+    CameraMenu(scene);
     LightingMenu(scene);
     ModelsMenu(scene);
 
@@ -71,6 +73,39 @@ void DebugWindow::FPSMenu() {
     if (ImGui::Checkbox("V-Sync", &vsync_enabled_m)) {
         window_m.SetVSync(vsync_enabled_m);
     }
+}
+
+void DebugWindow::CameraMenu(Scene& scene) {
+    if (!ImGui::CollapsingHeader("Camera")) return;
+
+    Camera& camera = scene.GetCamera();
+
+    // Position
+    ImGui::Text("Position:");
+    ImGui::Text("  X: %.2f", camera.position.x);
+    ImGui::Text("  Y: %.2f", camera.position.y);
+    ImGui::Text("  Z: %.2f", camera.position.z);
+
+    ImGui::Separator();
+
+    // Orientation (direction vector)
+    ImGui::Text("Direction:");
+    ImGui::Text("  X: %.2f", camera.pointing_at.x);
+    ImGui::Text("  Y: %.2f", camera.pointing_at.y);
+    ImGui::Text("  Z: %.2f", camera.pointing_at.z);
+
+    ImGui::Separator();
+
+    // Angles
+    ImGui::Text("Angles:");
+    ImGui::Text("  Yaw: %.1f°", camera.yaw);
+    ImGui::Text("  Pitch: %.1f°", camera.pitch);
+
+    ImGui::Separator();
+
+    // FOV
+    float fov_degrees = glm::degrees(camera.fov);
+    ImGui::Text("FOV: %.1f°", fov_degrees);
 }
 
 void DebugWindow::LightingMenu(Scene& scene) {
