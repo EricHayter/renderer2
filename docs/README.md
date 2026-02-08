@@ -1,28 +1,24 @@
-These are some notes that I'm taking while going over the material on
-LearnOpenGL (https://learnopengl.com). I've done a renderer before but I'm now
-learning how to make one that is hopefully more powerful and featureful.
+# OpenGL Renderer Notes
 
-===============================================================================
-OpenGL Types
-===============================================================================
+These are some notes that I'm taking while going over the material on [LearnOpenGL](https://learnopengl.com). I've done a renderer before but I'm now learning how to make one that is hopefully more powerful and featureful.
+
+## OpenGL Types
 OpenGL defines typed aliases that make code more readable:
-- GLuint:    unsigned int (for buffer/shader/program IDs)
-- GLint:     int
-- GLfloat:   float
-- GLsizei:   size type (for counts and sizes)
-- GLenum:    enum type (for constants like GL_ARRAY_BUFFER)
-- GLboolean: boolean type
-- GLchar:    character type
+- `GLuint`:    unsigned int (for buffer/shader/program IDs)
+- `GLint`:     int
+- `GLfloat`:   float
+- `GLsizei`:   size type (for counts and sizes)
+- `GLenum`:    enum type (for constants like `GL_ARRAY_BUFFER`)
+- `GLboolean`: boolean type
+- `GLchar`:    character type
 
 
-===============================================================================
-Vertex Input / Buffers
-===============================================================================
+## Vertex Input / Buffers
 
 Creating and binding buffers:
-- Use glGenBuffers to get a vertex buffer object (VBO) id
-- Then bind the buffer with glBindBuffer to a specific buffer target type
-- Many types of buffer objects exist; vertex buffer objects use GL_ARRAY_BUFFER
+- Use `glGenBuffers` to get a vertex buffer object (VBO) id
+- Then bind the buffer with `glBindBuffer` to a specific buffer target type
+- Many types of buffer objects exist; vertex buffer objects use `GL_ARRAY_BUFFER`
 - Can bind multiple buffers at once as long as they have different buffer types
 
 Creating a VBO:
@@ -34,7 +30,7 @@ GLuint VBO;
 glGenBuffers(1, &VBO);
 ```
 
-Binding the buffer to the GL_ARRAY_BUFFER target:
+Binding the buffer to the `GL_ARRAY_BUFFER` target:
 ```
 void glBindBuffer(GLenum target, GLuint buffer);
 ```
@@ -59,14 +55,14 @@ void glBufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage
 glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 ```
 
-glBufferData parameters:
-- target: The buffer target to operate on (GL_ARRAY_BUFFER for VBOs)
+`glBufferData` parameters:
+- target: The buffer target to operate on (`GL_ARRAY_BUFFER` for VBOs)
 - size: Size in bytes of the data being copied
 - data: Pointer to the data to copy
 - usage: How the GPU should manage the data:
-  - GL_STREAM_DRAW: set once, used by GPU at most a few times
-  - GL_STATIC_DRAW: set once, used many times
-  - GL_DYNAMIC_DRAW: changed a lot, used many times
+  - `GL_STREAM_DRAW`: set once, used by GPU at most a few times
+  - `GL_STATIC_DRAW`: set once, used many times
+  - `GL_DYNAMIC_DRAW`: changed a lot, used many times
 
 Complete example of creating and filling a VBO:
 ```
@@ -84,9 +80,9 @@ glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 ```
 
 
-===============================================================================
-Vertex Shader
-===============================================================================
+## Shaders
+
+### Vertex Shader
 - Use GLSL (OpenGL Shading Language) to write shaders
 - In modern OpenGL we need to write the vertex and fragment shaders
 - Looks a lot like C
@@ -106,20 +102,18 @@ Notes:
 - OpenGL version can be used to find the GLSL version by concatenating the
   major and minor versions of OpenGL
 - The location specifies which vertex attribute this input corresponds to
-  (location 0 will be used later in glVertexAttribPointer)
+  (location 0 will be used later in `glVertexAttribPointer`)
 - This is a vertex shader so we are transforming individual points
-- We take a vec3 (3D point) and name it aPos
-- GL_POSITION is the predefined output variable. At the end of the function,
-  whatever is in gl_Position will be the output of the shader
-- NOTE: gl_Position is a length-4 vector so we insert the 1.0 for the w
+- We take a `vec3` (3D point) and name it `aPos`
+- `gl_Position` is the predefined output variable. At the end of the function,
+  whatever is in `gl_Position` will be the output of the shader
+- NOTE: `gl_Position` is a length-4 vector so we insert the 1.0 for the w
   component
 - NOTE: this output is implicitly defined we can have other outputs from our
   vertex shader.
 
 
-===============================================================================
-Compiling the Shader
-===============================================================================
+### Compiling Shaders
 
 Can save the GLSL shader as a C const string:
 ```
@@ -134,7 +128,7 @@ const GLchar* vertexShaderSource = "#version 330 core\n"
 To use the shader, OpenGL will dynamically compile it at runtime from its
 source code.
 
-To create a shader we use glCreateShader:
+To create a shader we use `glCreateShader`:
 ```
 GLuint glCreateShader(GLenum shaderType);
 ```
@@ -143,7 +137,7 @@ GLuint vertexShader;
 vertexShader = glCreateShader(GL_VERTEX_SHADER);
 ```
 
-In this case since it's a vertex shader we specify we want a GL_VERTEX_SHADER.
+In this case since it's a vertex shader we specify we want a `GL_VERTEX_SHADER`.
 
 Attaching the source code and compiling:
 ```
@@ -155,11 +149,11 @@ glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 glCompileShader(vertexShader);
 ```
 
-glShaderSource parameters:
+`glShaderSource` parameters:
 - shader: The shader object to attach source to
 - count: Number of strings in the array
 - string: Array of source code strings
-- length: Array of string lengths (NULL = null-terminated strings)
+- length: Array of string lengths (`NULL` = null-terminated strings)
 
 Can check for success with logic similar to:
 ```
@@ -181,9 +175,7 @@ bool checkShaderCompileSuccess(GLuint shader) {
 ```
 
 
-===============================================================================
-Fragment Shader
-===============================================================================
+### Fragment Shader
 - The fragment shader is all about calculating the color output of your pixels
 
 Example fragment shader:
@@ -198,11 +190,11 @@ void main()
 ```
 
 Notes:
-- One output variable of size 4 called FragColor
-- Define the output variables with the out keyword
+- One output variable of size 4 called `FragColor`
+- Define the output variables with the `out` keyword
 
-Compiling is the same (main difference is we use GL_FRAGMENT_SHADER instead of
-GL_VERTEX_SHADER):
+Compiling is the same (main difference is we use `GL_FRAGMENT_SHADER` instead of
+`GL_VERTEX_SHADER`):
 ```
 GLuint fragmentShader;
 fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -211,9 +203,7 @@ glCompileShader(fragmentShader);
 ```
 
 
-===============================================================================
-Shader Program
-===============================================================================
+### Shader Program
 The shader program is the final linked version of multiple shaders combined.
 To use the compiled shaders we need to link them to a shader program object
 and then activate the shader program when rendering objects.
@@ -233,13 +223,11 @@ glLinkProgram(shaderProgram);
 ```
 
 Can use similar logic to check for the success of linking using the same
-method above used for compiling but using GL_LINK_STATUS instead of
-GL_COMPILE_STATUS with glGetProgramiv.
+method above used for compiling but using `GL_LINK_STATUS` instead of
+`GL_COMPILE_STATUS` with `glGetProgramiv`.
 
 
-===============================================================================
-Linking Vertex Attributes
-===============================================================================
+## Linking Vertex Attributes
 Vertex shaders allow us to specify any input we want in the form of vertex
 attributes, but we have to manually specify what part of our input data goes to
 which vertex attribute in the vertex shader.
@@ -256,31 +244,31 @@ glEnableVertexAttribArray(0);
 ```
 
 What these functions do:
-- glVertexAttribPointer: Tells OpenGL HOW to read data from the buffer for a
+- `glVertexAttribPointer`: Tells OpenGL HOW to read data from the buffer for a
   specific vertex attribute location. This is the configuration step.
 
-- glEnableVertexAttribArray: Turns ON that vertex attribute so the shader
+- `glEnableVertexAttribArray`: Turns ON that vertex attribute so the shader
   actually receives the buffer data. This is the activation step.
 
-Without glEnableVertexAttribArray, the shader won't receive your buffer data -
+Without `glEnableVertexAttribArray`, the shader won't receive your buffer data -
 it will just get default values (typically 0, 0, 0, 1) even though you've
 configured how to read it. Think of it as an "on switch" that gives the shader
 access to your buffer data.
 
-glVertexAttribPointer parameters:
+`glVertexAttribPointer` parameters:
 1. index: The vertex attribute location in the vertex shader. This connects to
    the layout location in the shader (e.g., "layout (location = 0)" means
    index = 0). It's just an ID number linking buffer data to shader input.
 
 2. size: The number of COMPONENTS per vertex attribute (NOT the total number of
-   vertices). For a vec3 (x, y, z), size = 3. For a vec2 (u, v), size = 2.
-   For a vec4 (r, g, b, a), size = 4. This tells OpenGL "how many numbers make
+   vertices). For a `vec3` (x, y, z), size = 3. For a `vec2` (u, v), size = 2.
+   For a `vec4` (r, g, b, a), size = 4. This tells OpenGL "how many numbers make
    up one value of this attribute for a single vertex."
 
-3. type: Data type of each component. GL_FLOAT for floats, GL_INT for ints, etc.
-   Since GLSL vec's use floating point values, we use GL_FLOAT.
+3. type: Data type of each component. `GL_FLOAT` for floats, `GL_INT` for ints, etc.
+   Since GLSL `vec`'s use floating point values, we use `GL_FLOAT`.
 
-4. normalized: Should the data be normalized to [0, 1] or [-1, 1]? GL_FALSE = no
+4. normalized: Should the data be normalized to [0, 1] or [-1, 1]? `GL_FALSE` = no
    normalization (use the values as-is).
 
 5. stride: Byte offset between consecutive vertex attributes. This is "how many
@@ -345,9 +333,7 @@ all of these state configurations into an object and simply bind this object to
 restore its state?
 
 
-===============================================================================
-Vertex Array Object
-===============================================================================
+## Vertex Array Object
 - A vertex array object (VAO) can be bound just like a vertex buffer object and
   any subsequent vertex attribute calls from that point on will be stored
   inside the VAO
@@ -358,7 +344,7 @@ Vertex Array Object
 
 VAO stores:
 - Enable/disable status of vertex attribute arrays
-- Vertex attribute configuration via glVertexAttribPointer
+- Vertex attribute configuration via `glVertexAttribPointer`
 - Vertex buffer objects associated with vertex attributes
 
 Creating a VAO looks similar to that of a VBO:
@@ -395,9 +381,7 @@ someOpenGLFunctionThatDrawsOurTriangle();
 ```
 
 
-===============================================================================
-Drawing a Triangle
-===============================================================================
+## Drawing a Triangle
 
 Everything has led to this point for the following:
 ```
@@ -411,17 +395,15 @@ glDrawArrays(GL_TRIANGLES, 0, 3);
 ```
 
 We load the shader, we bind the data (VAO which contains the VBO and attribute
-pointer configuration) and we call the glDrawArrays function.
+pointer configuration) and we call the `glDrawArrays` function.
 
-glDrawArrays parameters:
-- mode: Primitive type to render (GL_TRIANGLES, GL_LINES, GL_POINTS, etc.)
+`glDrawArrays` parameters:
+- mode: Primitive type to render (`GL_TRIANGLES`, `GL_LINES`, `GL_POINTS`, etc.)
 - first: Starting index of the first vertex to draw
 - count: Number of vertices to draw
 
 
-===============================================================================
-Element Buffer Objects (Index Buffers)
-===============================================================================
+## Element Buffer Objects (Index Buffers)
 
 Element Buffer Objects (EBOs) allow you to reuse vertices when drawing shapes.
 Instead of duplicating vertex data, you define unique vertices once and use
@@ -478,10 +460,10 @@ glBindVertexArray(VAO);
 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 ```
 
-glDrawElements parameters:
-- mode: Primitive type to render (GL_TRIANGLES, GL_LINES, etc.)
+`glDrawElements` parameters:
+- mode: Primitive type to render (`GL_TRIANGLES`, `GL_LINES`, etc.)
 - count: Number of indices to draw (NOT number of vertices)
-- type: Data type of indices (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT)
+- type: Data type of indices (`GL_UNSIGNED_BYTE`, `GL_UNSIGNED_SHORT`, `GL_UNSIGNED_INT`)
 - indices: Offset into the EBO (usually 0, or use pointer arithmetic for subsets)
 
 Important notes:
@@ -491,9 +473,7 @@ Important notes:
 - Using an EBO saves memory and can improve performance for complex meshes
 
 
-===============================================================================
-Uniforms
-===============================================================================
+## Uniforms
 
 Uniforms act as global variables (accessible from all shaders) inside of our
 shaders that persist at the same value unless reset or updated.
@@ -524,32 +504,30 @@ glUseProgram(shaderProgram);
 glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 ```
 
-In this case we have created a uniform variable in the shader called ourColor.
-We get the location of the uniform, then we set the value using glUniform4f.
+In this case we have created a uniform variable in the shader called `ourColor`.
+We get the location of the uniform, then we set the value using `glUniform4f`.
 
-glGetUniformLocation parameters:
+`glGetUniformLocation` parameters:
 - program: The shader program containing the uniform
 - name: The name of the uniform variable in the shader code
 
-glUniform4f parameters:
-- location: The location of the uniform (from glGetUniformLocation)
+`glUniform4f` parameters:
+- location: The location of the uniform (from `glGetUniformLocation`)
 - v0, v1, v2, v3: The four float values to set (in this case: r, g, b, a)
 
-NOTE: You don't need to call glUseProgram to find the location of the uniform,
-BUT to update the uniform (using glUniform4f), you must have the program active.
+NOTE: You don't need to call `glUseProgram` to find the location of the uniform,
+BUT to update the uniform (using `glUniform4f`), you must have the program active.
 
 
-===============================================================================
-GLM (OpenGL Mathematics)
-===============================================================================
+## GLM (OpenGL Mathematics)
 
 GLM is a C++ mathematics library designed for OpenGL. It provides vector and
 matrix types that match GLSL types, making it easy to work with transformations.
 
 Common types:
-- glm::vec3 - 3D vector (x, y, z)
-- glm::vec4 - 4D vector (x, y, z, w)
-- glm::mat4 - 4x4 matrix (used for transformations)
+- `glm::vec3` - 3D vector (x, y, z)
+- `glm::vec4` - 4D vector (x, y, z, w)
+- `glm::mat4` - 4x4 matrix (used for transformations)
 
 Creating transformation matrices:
 
@@ -611,25 +589,21 @@ in place, make sure the object's vertices are centered at the origin, or use
 translate → rotate → translate-back pattern.
 
 
-===============================================================================
-Textures
-===============================================================================
+## Textures
 
 texture coordinates range from [0, 1] on the X and Y axis. With top right being
 (1, 1), and bottom left being (0, 0)
 
 Just like with the fragment shader we wrote last time we only need to specify
-the text coordinates for the 3 verticies and the fragment interpolation will
+the texture coordinates for the 3 vertices and the fragment interpolation will
 do the rest for us.
 
-texture sampling has a loose interpolation and can be done in many differnet
+texture sampling has a loose interpolation and can be done in many different
 ways. So we must tell OpenGL how it should sample it's textures.
 
-===============================================================================
-Texture Wrapping
-===============================================================================
+### Texture Wrapping
 
-Question: What happens when we specify text coordinates outside of the [0, 1]
+Question: What happens when we specify texture coordinates outside of the [0, 1]
 range? By default, OpenGL will just repeat the texture, but there are other
 options
 
@@ -637,69 +611,65 @@ Can take a look at what some of these options visually look like:
 https://learnopengl.com/Getting-started/Textures
 in the texture wrapping section
 
-GL_REPEAT: default behaviour repeats texture
-GL_MIRRORED_REPEAT: same as GL_REPEAT but mirrors the image with each repeat
-GL_CLAMP_TO_EDGE: clamps the coordinates between [0, 1] higher coordinates
+`GL_REPEAT`: default behaviour repeats texture
+`GL_MIRRORED_REPEAT`: same as `GL_REPEAT` but mirrors the image with each repeat
+`GL_CLAMP_TO_EDGE`: clamps the coordinates between [0, 1] higher coordinates
 get clamped to the edge.
-GL_CLAMP_TO_BORDER: coordinates outside the range are now given a user-specified
+`GL_CLAMP_TO_BORDER`: coordinates outside the range are now given a user-specified
 border color.
 
-each of these options are set with GlTexParameter*
+each of these options are set with `glTexParameter*`
 ```
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 ```
 
-NOTE: texture axis is (S, T, R) not (X, Y, Z)
+NOTE: texture axis is `(S, T, R)` not `(X, Y, Z)`
 
 first arg is the texture target, second is what option we want to set and for
 which texture axis. Last is the wrapping mode.
 
-if we chose GL_CLAMP_TO_BORDER we could have specified the border color with
+if we chose `GL_CLAMP_TO_BORDER` we could have specified the border color with
 the following:
 ```
 float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
 glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 ```
 
-===============================================================================
-Texture Filtering
-===============================================================================
+### Texture Filtering
 
 texture coordinates don't depend on resolution of the image, thus OpenGL must
 determine the color of the texture pixel (A.K.A. a texel) to map the texture
 coordinate to.
 
-OpenGL has options for texture filtering with the most important being
-GL_NEAREST: returns the color of the nearest pixel in the texture
-GL_LINEAR: (billinear filtering) takes an interpolated value from the texture's
-neighboring texels, and approximating a color between the texels.
+OpenGL has options for texture filtering with the most important being:
+- `GL_NEAREST`: returns the color of the nearest pixel in the texture
+- `GL_LINEAR`: (bilinear filtering) takes an interpolated value from the texture's neighboring texels, approximating a color between the texels
 
 Can take a look at what some of these options visually look like:
 https://learnopengl.com/Getting-started/Textures
 in the texture filtering section.
 
-texture filtering can beset for magnifying or minifying operations.
-we thus have to specify the filtering methods for both options in
-glTexParameter
+Texture filtering can be set for magnifying or minifying operations.
+We thus have to specify the filtering methods for both options in
+`glTexParameter`:
 ```
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 ```
 
 Mipmaps:
-in a very complicated scene you might have thousands of different textures,
+In a very complicated scene you might have thousands of different textures,
 if they are all very high res this could put a lot of load on your memory
 especially if the textures are being viewed from far away where detail might
 not be so important anyways. OpenGL has the concept of a Mipmap that
 contains a texture image and copies half of it's size continually,
 e.g. 1, 1/2, 1/4 the size etc...
 
-glGenerateMipmap
-you have four options for scaling once again:
-GL_<TEXEL INTERP>_MIPMAP_<MIPMAP INTERP>
-where TEXEL INTERP and MIPMAP INTERP can be LINEAR or NEAREST. The texel interp
-is has the effect of as described above and the MIPMAP INTERP determines
+With `glGenerateMipmap` you have four options for scaling:
+`GL_<TEXEL INTERP>_MIPMAP_<MIPMAP INTERP>`
+where TEXEL INTERP and MIPMAP INTERP can be `LINEAR` or `NEAREST`. The texel interp
+has the effect of as described above and the MIPMAP INTERP determines
 what texture image to use: either the nearest relative to pixel size, or
 interpolate between two Mipmaps.
 
@@ -708,10 +678,8 @@ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 ```
 
-===============================================================================
-Loading and Creating Textures
-===============================================================================
-going to be using the stb header for loading in images.
+### Loading and Creating Textures
+Going to be using the `stb_image` header for loading in images.
 
 Loading is simple:
 ```
@@ -726,15 +694,15 @@ glGenTextures(1, &texture);
 glBindTexture(GL_TEXTURE_2D, texture);
 ```
 
-Next we can generate the texture and Mipmap with teh following function:
+Next we can generate the texture and Mipmap with the following function:
 ```
 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 glGenerateMipmap(GL_TEXTURE_2D)
 ```
 
-glTextImage2D has the following arguments:
+glTexImage2D has the following arguments:
 1. specifies the texture target.
-2. specifies the Mipmap level for thwich we want to create a text for if you
+2. specifies the Mipmap level for which we want to create a texture for if you
    want to set each mipmap level manually. (default is 0)
 3. tells opengl what kind of format we want to store the texture.
 4. width of texture
@@ -751,11 +719,11 @@ stbi_image_free(data);
 
 IMPORTANT - Texture Row Alignment Issue:
 By default, OpenGL assumes texture data has 4-byte alignment per row. However,
-stb_image loads data without padding (tightly packed). This causes rendering
+`stb_image` loads data without padding (tightly packed). This causes rendering
 issues with textures whose width * channels is not a multiple of 4.
 
 Example: A 250x250 RGB image has 250 * 3 = 750 bytes per row, which is not
-divisible by 4. OpenGL expects padding, but stb_image doesn't provide it.
+divisible by 4. OpenGL expects padding, but `stb_image` doesn't provide it.
 
 Solution - Tell OpenGL to use 1-byte alignment before uploading texture data:
 ```
@@ -763,8 +731,8 @@ glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 ```
 
-GL_UNPACK_ALIGNMENT values:
-- 1: No alignment (use for tightly packed data from stb_image)
+`GL_UNPACK_ALIGNMENT` values:
+- 1: No alignment (use for tightly packed data from `stb_image`)
 - 4: 4-byte alignment (OpenGL default)
 - 2 or 8: Also valid but rarely used
 
@@ -816,10 +784,10 @@ void main()
 }
 ```
 
-But the fragment shader changes a bit. We can use the Sampler2D data type to
-pass our text object into the fragment shader. And then to sample the color of
-a texture we use glsl's built in texture function that takes the sampler as the
-first argument and the texture coordiante next (the pair each number in [0,1]).
+But the fragment shader changes a bit. We can use the sampler2D data type to
+pass our texture object into the fragment shader. And then to sample the color of
+a texture we use GLSL's built in texture function that takes the sampler as the
+first argument and the texture coordinate next (the pair each number in [0,1]).
 ```
 #version 330 core
 out vec4 FragColor;
@@ -835,9 +803,7 @@ void main()
 }
 ```
 
-===============================================================================
-Coordinate Systems
-===============================================================================
+## Coordinate Systems
 There are 5 coordinate systems that we care about:
 1. Local space (or object space)
 2. World space
@@ -859,11 +825,11 @@ clip -(viewport transform)-> screen space
 The transformation process:
 1. Everything starts relative to its local origin
 2. Transform to world-space coordinates which makes everything relative to a
-   global origin (model matrix)
+   global origin (`model matrix`)
 3. Transform the world coordinates to view-space coordinates so that each
-   coordinate is as seen from the camera's point of view (view matrix)
-4. Apply projection to map coordinates to the -1.0 to 1.0 range (projection matrix)
-5. Convert from the -1.0 to 1.0 range to the viewport range (viewport transform)
+   coordinate is as seen from the camera's point of view (`view matrix`)
+4. Apply projection to map coordinates to the -1.0 to 1.0 range (`projection matrix`)
+5. Convert from the -1.0 to 1.0 range to the viewport range (`viewport transform`)
 
 The projection matrix takes a viewing box and scales it down to the desired
 (-1.0, 1.0) NDC (normalized device coordinates) range that OpenGL expects.
@@ -873,19 +839,17 @@ Important: Anything outside the frustum (closer than near plane or farther
 than far plane) gets clipped and discarded.
 
 
-===============================================================================
-Orthographic Projection
-===============================================================================
+### Orthographic Projection
 
 Orthographic projection takes everything inside the box and discards everything
 else (no scaling based on depth - parallel projection).
 
-Can create an orthographic projection using glm::ortho:
+Can create an orthographic projection using `glm::ortho`:
 ```
 glm::mat4 proj = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
 ```
 
-glm::ortho parameters:
+`glm::ortho` parameters:
 1. Left side of frustum
 2. Right side of frustum
 3. Bottom of frustum
@@ -894,9 +858,7 @@ glm::ortho parameters:
 6. Far plane distance of frustum
 
 
-===============================================================================
-Perspective Projection
-===============================================================================
+### Perspective Projection
 
 Perspective projection creates depth - objects farther away appear smaller
 (mimics how human eyes see the world).
@@ -906,9 +868,9 @@ You can create a perspective projection matrix with GLM:
 glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width/(float)height, 0.1f, 100.0f);
 ```
 
-glm::perspective parameters:
+`glm::perspective` parameters:
 1. FOV (field of view) - defines how wide the camera can see. Typically 45-90 degrees
-2. Aspect ratio - usually width/height of the viewport
+2. Aspect ratio - usually `width/height` of the viewport
 3. Near plane - distance to near clipping plane (typically 0.1)
 4. Far plane - distance to far clipping plane (typically 100.0)
 

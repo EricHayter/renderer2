@@ -4,6 +4,8 @@ An OpenGL-based renderer built as an evolution of my [previous software renderer
 
 Following [LearnOpenGL](https://learnopengl.com/) and documenting everything I learn in `notes.txt`.
 
+[See my notes](https://erichayter.github.io/renderer2/) on everything I've learned so far.
+
 ## Building
 
 Clone with submodules:
