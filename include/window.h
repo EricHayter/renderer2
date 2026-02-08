@@ -35,6 +35,7 @@ class Window {
     void PollEvents() const { glfwPollEvents(); }
     void SwapBuffers() const { glfwSwapBuffers(window_m); }
     void ProcessInput(Camera& camera);
+    void SetVSync(bool enabled) const { glfwSwapInterval(enabled ? 1 : 0); }
 
     private:
     // Called automatically by GLFW when the window is resized.

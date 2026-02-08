@@ -4,8 +4,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-DebugWindow::DebugWindow(GLFWwindow* window, FPSTracker& fps_tracker)
-    : fps_tracker_m{fps_tracker} {
+DebugWindow::DebugWindow(Window& window, FPSTracker& fps_tracker)
+    : window_m{window}, fps_tracker_m{fps_tracker} {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -17,7 +17,7 @@ DebugWindow::DebugWindow(GLFWwindow* window, FPSTracker& fps_tracker)
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(
-        window,
+        window.GetGLFWWindow(),
         true);  // Second param install_callback=true will install GLFW
                 // callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
@@ -65,6 +65,11 @@ void DebugWindow::FPSMenu() {
     if (fps > 0.0f) {
         float frame_time_ms = 1000.0f / fps;
         ImGui::Text("Frame Time: %.2f ms", frame_time_ms);
+    }
+
+    ImGui::Separator();
+    if (ImGui::Checkbox("V-Sync", &vsync_enabled_m)) {
+        window_m.SetVSync(vsync_enabled_m);
     }
 }
 

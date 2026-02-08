@@ -27,7 +27,7 @@ int main(int argc, const char** const argv) {
     glEnable(GL_DEPTH_TEST);
 
     FPSTracker fps_tracker;
-    DebugWindow debug_window(window.GetGLFWWindow(), fps_tracker);
+    DebugWindow debug_window(window, fps_tracker);
 
     // Render loop
     while (!window.ShouldClose()) {

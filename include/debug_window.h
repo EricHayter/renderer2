@@ -9,10 +9,11 @@
 
 #include "scene.h"
 #include "fps_tracker.h"
+#include "window.h"
 
 class DebugWindow {
     public:
-    DebugWindow(GLFWwindow* window, FPSTracker& fps_tracker);
+    DebugWindow(Window& window, FPSTracker& fps_tracker);
     ~DebugWindow();
     void Draw(Scene& scene);
 
@@ -21,6 +22,8 @@ class DebugWindow {
     void ModelsMenu(Scene& scene);
 
     private:
-    bool light_follows_camera_m = false;
+    Window& window_m;
     FPSTracker& fps_tracker_m;
+    bool light_follows_camera_m = false;
+    bool vsync_enabled_m = true;
 };
