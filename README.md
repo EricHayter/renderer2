@@ -2,6 +2,8 @@
 
 An OpenGL-based renderer built as an evolution of my [previous software renderer](https://github.com/EricHayter/renderer). This version uses modern OpenGL and GPU shaders instead of doing all rendering calculations by hand.
 
+![Renderer Demo](docs/demos/demo.gif)
+
 Following [LearnOpenGL](https://learnopengl.com/) and documenting everything I learn in `notes.txt`.
 
 [See my notes](https://erichayter.github.io/renderer2/) on everything I've learned so far.
@@ -27,6 +29,8 @@ cmake ..
 cmake --build .
 ./src/renderer ../models/plant.obj
 ```
+
+Once you have everything built, fly around with <kbd>w</kbd> <kbd>a</kbd> <kbd>s</kbd> <kbd>d</kbd> or arrow keys. Hold <kbd>space</kbd> to go up, <kbd>shift</kbd> to go down. Right-click and drag to look around. Hit <kbd>esc</kbd> to exit.
 
 ### Supported Model Formats
 
