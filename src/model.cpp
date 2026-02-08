@@ -16,7 +16,6 @@ int Model::next_id_s = 0;
 
 Model::Model(const std::filesystem::path &path) : id_m(next_id_s++) {
     loadModel(path);
-    UpdateModelMatrix();
 }
 
 void Model::Draw(Shader &shader) {
@@ -40,21 +39,23 @@ size_t Model::GetTriangleCount() const {
     return total;
 }
 
-void Model::UpdateModelMatrix() {
-    model_matrix_m = glm::mat4(1.0f);
+glm::mat4 Model::GetModelMatrix() const {
+    glm::mat4 model_matrix = glm::mat4(1.0f);
 
     // Apply translation
-    model_matrix_m = glm::translate(model_matrix_m, translation_m);
+    model_matrix = glm::translate(model_matrix, translation_m);
 
     // Apply coordinate system conversion if needed (Y-up to Z-up)
     if (!is_y_up_m) {
         // Rotate 90 degrees around X axis to convert Y-up to Z-up
-        model_matrix_m = glm::rotate(model_matrix_m, glm::radians(90.0f),
-                                     glm::vec3(1.0f, 0.0f, 0.0f));
+        model_matrix = glm::rotate(model_matrix, glm::radians(90.0f),
+                                   glm::vec3(1.0f, 0.0f, 0.0f));
     }
 
     // Apply scale
-    model_matrix_m = glm::scale(model_matrix_m, scale_m);
+    model_matrix = glm::scale(model_matrix, scale_m);
+
+    return model_matrix;
 }
 
 void Model::loadModel(const std::filesystem::path &path) {

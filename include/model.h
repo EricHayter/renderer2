@@ -21,7 +21,7 @@ class Model
         size_t GetTriangleCount() const;
         size_t GetMeshCount() const { return meshes.size(); }
 
-        glm::mat4& GetModelMatrix() { return model_matrix_m; }
+        glm::mat4 GetModelMatrix() const;
         int GetID() const { return id_m; }
 
         // Transformation accessors
@@ -29,15 +29,11 @@ class Model
         glm::vec3& GetScale() { return scale_m; }
         bool& GetIsYUp() { return is_y_up_m; }
 
-        // Update model matrix based on transformation parameters
-        void UpdateModelMatrix();
-
     private:
         // model data
         int id_m;
         static int next_id_s;
 
-        glm::mat4 model_matrix_m{1.0f};
         glm::vec3 translation_m{0.0f, 0.0f, 0.0f};
         glm::vec3 scale_m{1.0f, 1.0f, 1.0f};
         bool is_y_up_m = true;

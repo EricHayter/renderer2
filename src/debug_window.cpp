@@ -4,7 +4,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-DebugWindow::DebugWindow(GLFWwindow* window) {
+DebugWindow::DebugWindow(GLFWwindow* window, FPSTracker& fps_tracker)
+    : fps_tracker_m{fps_tracker} {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -30,7 +31,7 @@ DebugWindow::~DebugWindow() {
 
 void DebugWindow::Draw(Scene& scene) {
     // Update light position if following camera
-    if (light_follows_camera) {
+    if (light_follows_camera_m) {
         scene.GetLightPosition() = scene.GetCamera().position;
     }
 
@@ -45,6 +46,7 @@ void DebugWindow::Draw(Scene& scene) {
         return;
     }
 
+    FPSMenu();
     LightingMenu(scene);
     ModelsMenu(scene);
 
@@ -54,17 +56,29 @@ void DebugWindow::Draw(Scene& scene) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void DebugWindow::FPSMenu() {
+    if (!ImGui::CollapsingHeader("Performance")) return;
+
+    float fps = fps_tracker_m.GetFPS();
+    ImGui::Text("FPS: %.1f", fps);
+
+    if (fps > 0.0f) {
+        float frame_time_ms = 1000.0f / fps;
+        ImGui::Text("Frame Time: %.2f ms", frame_time_ms);
+    }
+}
+
 void DebugWindow::LightingMenu(Scene& scene) {
     if (!ImGui::CollapsingHeader("Lighting")) return;
 
-    ImGui::Checkbox("Follow Camera", &light_follows_camera);
+    ImGui::Checkbox("Follow Camera", &light_follows_camera_m);
 
     glm::vec3& light_pos = scene.GetLightPosition();
-    if (light_follows_camera) {
+    if (light_follows_camera_m) {
         ImGui::BeginDisabled();
     }
     ImGui::DragFloat3("Light Position", &light_pos.x, 0.1f);
-    if (light_follows_camera) {
+    if (light_follows_camera_m) {
         ImGui::EndDisabled();
     }
 
@@ -82,23 +96,15 @@ void DebugWindow::ModelsMenu(Scene& scene) {
 
     // Translation controls
     glm::vec3& translation = model.GetTranslation();
-    if (ImGui::DragFloat3("Translation", &translation.x, 0.1f)) {
-        model.UpdateModelMatrix();
-    }
+    ImGui::DragFloat3("Translation", &translation.x, 0.1f);
 
     // Scale controls
     glm::vec3& scale = model.GetScale();
-    if (ImGui::DragFloat3("Scale", &scale.x, 0.01f, 0.01f, 10.0f)) {
-        model.UpdateModelMatrix();
-    }
+    ImGui::DragFloat3("Scale", &scale.x, 0.01f, 0.001f, 100.0f);
 
     // Coordinate system toggle
     bool& is_y_up = model.GetIsYUp();
-    bool was_y_up = is_y_up;
     ImGui::Checkbox("Y-Up (unchecked = Z-Up)", &is_y_up);
-    if (was_y_up != is_y_up) {
-        model.UpdateModelMatrix();
-    }
 
     ImGui::Separator();
     ImGui::Text("Stats:");

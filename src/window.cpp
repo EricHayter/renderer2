@@ -22,6 +22,7 @@ Window::Window(const WindowConfig& config) {
         throw std::runtime_error("Failed to create GLFW window");
     }
     glfwMakeContextCurrent(window_m);
+    glfwSwapInterval(0);  // Disable V-Sync to see true FPS
 
     if (first_window) {
         if (!gladLoadGL(glfwGetProcAddress)) {

@@ -8,6 +8,7 @@ add_executable(renderer
     camera.cpp
     scene.cpp
     debug_window.cpp
+    fps_tracker.cpp
 )
 
 target_include_directories(renderer
