@@ -29,6 +29,11 @@ DebugWindow::~DebugWindow() {
 }
 
 void DebugWindow::Draw(Scene& scene) {
+    // Update light position if following camera
+    if (light_follows_camera) {
+        scene.GetLightPosition() = scene.GetCamera().position;
+    }
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -51,8 +56,16 @@ void DebugWindow::Draw(Scene& scene) {
 void DebugWindow::LightingMenu(Scene& scene) {
     if (!ImGui::CollapsingHeader("Lighting")) return;
 
+    ImGui::Checkbox("Follow Camera", &light_follows_camera);
+
     glm::vec3& light_pos = scene.GetLightPosition();
+    if (light_follows_camera) {
+        ImGui::BeginDisabled();
+    }
     ImGui::DragFloat3("Light Position", &light_pos.x, 0.1f);
+    if (light_follows_camera) {
+        ImGui::EndDisabled();
+    }
 
     glm::vec3& light_color = scene.GetLightColor();
     ImGui::ColorEdit3("Light Color", &light_color.x);
