@@ -46,6 +46,7 @@ void DebugWindow::Draw(Scene& scene) {
     }
 
     LightingMenu(scene);
+    ModelsMenu(scene);
 
     ImGui::End();
 
@@ -69,4 +70,39 @@ void DebugWindow::LightingMenu(Scene& scene) {
 
     glm::vec3& light_color = scene.GetLightColor();
     ImGui::ColorEdit3("Light Color", &light_color.x);
+}
+
+void DebugWindow::ModelsMenu(Scene& scene) {
+    if (!ImGui::CollapsingHeader("Models")) return;
+
+    Model& model = scene.GetModel();
+
+    ImGui::Text("Model ID: %d", model.GetID());
+    ImGui::Separator();
+
+    // Translation controls
+    glm::vec3& translation = model.GetTranslation();
+    if (ImGui::DragFloat3("Translation", &translation.x, 0.1f)) {
+        model.UpdateModelMatrix();
+    }
+
+    // Scale controls
+    glm::vec3& scale = model.GetScale();
+    if (ImGui::DragFloat3("Scale", &scale.x, 0.01f, 0.01f, 10.0f)) {
+        model.UpdateModelMatrix();
+    }
+
+    // Coordinate system toggle
+    bool& is_y_up = model.GetIsYUp();
+    bool was_y_up = is_y_up;
+    ImGui::Checkbox("Y-Up (unchecked = Z-Up)", &is_y_up);
+    if (was_y_up != is_y_up) {
+        model.UpdateModelMatrix();
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Stats:");
+    ImGui::Text("  Vertices: %zu", model.GetVertexCount());
+    ImGui::Text("  Triangles: %zu", model.GetTriangleCount());
+    ImGui::Text("  Meshes: %zu", model.GetMeshCount());
 }

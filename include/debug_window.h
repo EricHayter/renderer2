@@ -16,6 +16,7 @@ class DebugWindow {
     void Draw(Scene& scene);
 
     void LightingMenu(Scene& scene);
+    void ModelsMenu(Scene& scene);
 
     private:
     bool light_follows_camera = false;

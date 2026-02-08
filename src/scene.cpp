@@ -22,7 +22,7 @@ void Scene::Draw(Shader& shader, const Window& window) {
 
     // TODO in the future this is going to be a member of the model objects I
     // have
-    glm::mat4 model_mat = glm::mat4(1.0f);
+    glm::mat4 model_mat = model_m.GetModelMatrix();
     glm::mat4 normal_mat = glm::transpose(glm::inverse(view_mat * model_mat));
     shader.SetMatrix4("uNormalMatrix", normal_mat);
 

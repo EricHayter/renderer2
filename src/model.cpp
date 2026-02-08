@@ -11,7 +11,13 @@
 #include "stb/stb_image.h"
 #include "texture.h"
 
-Model::Model(const std::filesystem::path &path) { loadModel(path); }
+// Initialize static ID counter
+int Model::next_id_s = 0;
+
+Model::Model(const std::filesystem::path &path) : id_m(next_id_s++) {
+    loadModel(path);
+    UpdateModelMatrix();
+}
 
 void Model::Draw(Shader &shader) {
     shader.Use();
@@ -32,6 +38,23 @@ size_t Model::GetTriangleCount() const {
         total += mesh.GetIndices().size() / 3;
     }
     return total;
+}
+
+void Model::UpdateModelMatrix() {
+    model_matrix_m = glm::mat4(1.0f);
+
+    // Apply translation
+    model_matrix_m = glm::translate(model_matrix_m, translation_m);
+
+    // Apply coordinate system conversion if needed (Y-up to Z-up)
+    if (!is_y_up_m) {
+        // Rotate 90 degrees around X axis to convert Y-up to Z-up
+        model_matrix_m = glm::rotate(model_matrix_m, glm::radians(90.0f),
+                                     glm::vec3(1.0f, 0.0f, 0.0f));
+    }
+
+    // Apply scale
+    model_matrix_m = glm::scale(model_matrix_m, scale_m);
 }
 
 void Model::loadModel(const std::filesystem::path &path) {
