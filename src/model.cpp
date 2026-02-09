@@ -125,8 +125,15 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     }
 
     // process material
+    float shininess = 32.0f;
+    glm::vec3 ambient(1.0f, 1.0f, 1.0f);
+    glm::vec3 diffuse(1.0f, 1.0f, 1.0f);
+    glm::vec3 specular(1.0f, 1.0f, 1.0f);
+
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+
+        // Load textures
         std::vector<Texture *> diffuseMaps =
             loadMaterialTextures(material, aiTextureType_DIFFUSE);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
@@ -134,9 +141,24 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             loadMaterialTextures(material, aiTextureType_SPECULAR);
         textures.insert(textures.end(), specularMaps.begin(),
                         specularMaps.end());
+
+        // Extract material properties - using exact old working logic
+        aiColor3D aiAmbient(1.0f, 1.0f, 1.0f);
+        aiColor3D aiDiffuse(1.0f, 1.0f, 1.0f);
+        aiColor3D aiSpecular(1.0f, 1.0f, 1.0f);
+
+        material->Get(AI_MATKEY_SHININESS, shininess);
+        material->Get(AI_MATKEY_COLOR_AMBIENT, aiAmbient);
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, aiDiffuse);
+        material->Get(AI_MATKEY_COLOR_SPECULAR, aiSpecular);
+
+        ambient = glm::vec3(aiAmbient.r, aiAmbient.g, aiAmbient.b);
+        diffuse = glm::vec3(aiDiffuse.r, aiDiffuse.g, aiDiffuse.b);
+        specular = glm::vec3(aiSpecular.r, aiSpecular.g, aiSpecular.b);
     }
 
-    return Mesh(vertices, indices, textures);
+    return Mesh(vertices, indices, textures, shininess, ambient, diffuse,
+                specular);
 }
 
 std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,

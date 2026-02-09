@@ -12,13 +12,19 @@ void Scene::Draw(Shader& shader, const Window& window) {
     glm::mat4 view_mat = camera_m.GetViewMatrix();
     shader.SetMatrix4("uView", view_mat);
 
+    auto& light_pos = light_m.position;
     glm::vec4 transformed_light_pos =
-        view_mat * glm::vec4(light_pos_m.x, light_pos_m.y, light_pos_m.z, 1.0f);
-    shader.SetFloat("uLightPosition",
+        view_mat * glm::vec4(light_pos.x, light_pos.y, light_pos.z, 1.0f);
+    shader.SetFloat("uLight.position",
                     {transformed_light_pos.x, transformed_light_pos.y,
                      transformed_light_pos.z});
-    shader.SetFloat("uLightColor",
-                    {light_color_m.r, light_color_m.g, light_color_m.b});
+
+    auto& ambient = light_m.ambient;
+    shader.SetFloat("uLight.ambient", {ambient.r, ambient.g, ambient.b});
+    auto& diffuse = light_m.diffuse;
+    shader.SetFloat("uLight.diffuse", {diffuse.r, diffuse.g, diffuse.b});
+    auto& specular = light_m.specular;
+    shader.SetFloat("uLight.specular", {specular.r, specular.g, specular.b});
 
     // TODO in the future this is going to be a member of the model objects I
     // have

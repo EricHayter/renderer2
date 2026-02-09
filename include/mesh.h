@@ -8,7 +8,6 @@
 #include "shader.h"
 #include "texture.h"
 
-
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -17,7 +16,9 @@ struct Vertex {
 
 class Mesh {
     public:
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture*> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture*> textures,
+             float shininess, glm::vec3 ambient,
+             glm::vec3 diffuse, glm::vec3 specular);
         ~Mesh();
         Mesh(const Mesh& other) = delete;
         Mesh& operator=(const Mesh& other) = delete;
@@ -36,5 +37,9 @@ class Mesh {
         std::vector<unsigned int> indices;
         std::vector<Texture*> textures;
         std::optional<unsigned int> VAO, VBO, EBO;
-        void setupMesh();
+
+        float shininess_m;
+        glm::vec3 ambient_m;
+        glm::vec3 diffuse_m;
+        glm::vec3 specular_m;
 };
