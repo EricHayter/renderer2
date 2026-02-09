@@ -33,7 +33,7 @@ DebugWindow::~DebugWindow() {
 void DebugWindow::Draw(Scene& scene) {
     // Update light position if following camera
     if (light_follows_camera_m) {
-        scene.GetLight().position = scene.GetCamera().position;
+        scene.light.position = scene.camera.position;
     }
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -78,7 +78,7 @@ void DebugWindow::FPSMenu() {
 void DebugWindow::CameraMenu(Scene& scene) {
     if (!ImGui::CollapsingHeader("Camera")) return;
 
-    Camera& camera = scene.GetCamera();
+    Camera& camera = scene.camera;
 
     // Position
     ImGui::Text("Position:");
@@ -113,7 +113,7 @@ void DebugWindow::LightingMenu(Scene& scene) {
 
     ImGui::Checkbox("Follow Camera", &light_follows_camera_m);
 
-    glm::vec3& light_pos = scene.GetLight().position;
+    glm::vec3& light_pos = scene.light.position;
     if (light_follows_camera_m) {
         ImGui::BeginDisabled();
     }
@@ -122,7 +122,7 @@ void DebugWindow::LightingMenu(Scene& scene) {
         ImGui::EndDisabled();
     }
 
-    Light& light = scene.GetLight();
+    Light& light = scene.light;
     ImGui::ColorEdit3("ambient", &light.ambient.x);
     ImGui::ColorEdit3("diffuse", &light.diffuse.x);
     ImGui::ColorEdit3("specular", &light.specular.x);
@@ -131,22 +131,19 @@ void DebugWindow::LightingMenu(Scene& scene) {
 void DebugWindow::ModelsMenu(Scene& scene) {
     if (!ImGui::CollapsingHeader("Models")) return;
 
-    Model& model = scene.GetModel();
+    Model& model = scene.model;
 
     ImGui::Text("Model ID: %d", model.GetID());
     ImGui::Separator();
 
     // Translation controls
-    glm::vec3& translation = model.GetTranslation();
-    ImGui::DragFloat3("Translation", &translation.x, 0.1f);
+    ImGui::DragFloat3("Translation", &model.translation.x, 0.1f);
 
     // Scale controls
-    glm::vec3& scale = model.GetScale();
-    ImGui::DragFloat3("Scale", &scale.x, 0.01f, 0.001f, 100.0f);
+    ImGui::DragFloat3("Scale", &model.scale.x, 0.01f, 0.001f, 100.0f);
 
     // Coordinate system toggle
-    bool& is_y_up = model.GetIsYUp();
-    ImGui::Checkbox("Y-Up (unchecked = Z-Up)", &is_y_up);
+    ImGui::Checkbox("Y-Up (unchecked = Z-Up)", &model.is_y_up);
 
     ImGui::Separator();
     ImGui::Text("Stats:");

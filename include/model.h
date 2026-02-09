@@ -22,29 +22,25 @@ class Model
         size_t GetMeshCount() const { return meshes.size(); }
 
         glm::mat4 GetModelMatrix() const;
-        int GetID() const { return id_m; }
+        int GetID() const { return id; }
 
-        // Transformation accessors
-        glm::vec3& GetTranslation() { return translation_m; }
-        glm::vec3& GetScale() { return scale_m; }
-        bool& GetIsYUp() { return is_y_up_m; }
+        // Transformation properties
+        glm::vec3 translation{0.0f, 0.0f, 0.0f};
+        glm::vec3 scale{1.0f, 1.0f, 1.0f};
+        bool is_y_up = true;
 
     private:
         // model data
-        int id_m;
-        static int next_id_s;
-
-        glm::vec3 translation_m{0.0f, 0.0f, 0.0f};
-        glm::vec3 scale_m{1.0f, 1.0f, 1.0f};
-        bool is_y_up_m = true;
+        int id;
+        static int next_id;
 
         std::vector<Mesh> meshes;
-        std::filesystem::path directory_m;
+        std::filesystem::path directory;
         std::vector<std::unique_ptr<Texture>> textures_loaded;
 
-        // Keep importer alive - scene_m points into its memory
-        Assimp::Importer importer_m;
-        const aiScene* scene_m;
+        // Keep importer alive - scene points into its memory
+        Assimp::Importer importer;
+        const aiScene* scene;
 
         void loadModel(const std::filesystem::path& path);
         void processNode(aiNode *node, const aiScene *scene);

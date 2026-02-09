@@ -32,7 +32,7 @@ int main(int argc, const char** const argv) {
     // Render loop
     while (!window.ShouldClose()) {
         // handling input
-        window.ProcessInput(scene.GetCamera());
+        window.ProcessInput(scene.camera);
 
         scene.Draw(shader, window);
         debug_window.Draw(scene);

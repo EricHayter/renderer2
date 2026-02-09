@@ -12,9 +12,9 @@
 #include "texture.h"
 
 // Initialize static ID counter
-int Model::next_id_s = 0;
+int Model::next_id = 0;
 
-Model::Model(const std::filesystem::path &path) : id_m(next_id_s++) {
+Model::Model(const std::filesystem::path &path) : id(next_id++) {
     loadModel(path);
 }
 
@@ -43,34 +43,34 @@ glm::mat4 Model::GetModelMatrix() const {
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
     // Apply translation
-    model_matrix = glm::translate(model_matrix, translation_m);
+    model_matrix = glm::translate(model_matrix, translation);
 
     // Apply coordinate system conversion if needed (Y-up to Z-up)
-    if (!is_y_up_m) {
+    if (!is_y_up) {
         // Rotate 90 degrees around X axis to convert Y-up to Z-up
         model_matrix = glm::rotate(model_matrix, glm::radians(90.0f),
                                    glm::vec3(1.0f, 0.0f, 0.0f));
     }
 
     // Apply scale
-    model_matrix = glm::scale(model_matrix, scale_m);
+    model_matrix = glm::scale(model_matrix, scale);
 
     return model_matrix;
 }
 
 void Model::loadModel(const std::filesystem::path &path) {
-    scene_m =
-        importer_m.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    scene =
+        importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-    if (!scene_m || scene_m->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
-        !scene_m->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << importer_m.GetErrorString()
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
+        !scene->mRootNode) {
+        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString()
                   << std::endl;
         return;
     }
-    directory_m = path.parent_path();
+    directory = path.parent_path();
 
-    processNode(scene_m->mRootNode, scene_m);
+    processNode(scene->mRootNode, scene);
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene) {
@@ -194,7 +194,7 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,
             // Texture is internal to the model file
             if (texture_name_string.starts_with("*")) {
                 int index = std::stoi(texture_name_string.substr(1));
-                aiTexture *embedded = scene_m->mTextures[index];
+                aiTexture *embedded = scene->mTextures[index];
                 auto texture = std::make_unique<Texture>(
                     embedded, texture_name_string,
                     Texture::Configuration{.texture_type = texture_type});
@@ -203,7 +203,7 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,
             } else {
                 // texture is external to the model file (likely in textures/)
                 auto texture = std::make_unique<Texture>(
-                    directory_m / texture_name_string, texture_name_string,
+                    directory / texture_name_string, texture_name_string,
                     Texture::Configuration{.texture_type = texture_type});
                 textures.push_back(texture.get());
                 textures_loaded.push_back(std::move(texture));

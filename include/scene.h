@@ -11,22 +11,12 @@
 #include "light.h"
 
 class Scene {
-    public:
+public:
     Scene(const std::filesystem::path& path);
     void Draw(Shader& shader, const Window& window);
-    Camera& GetCamera() { return camera_m; }
 
-    // Lighting accessors
-    Light& GetLight() { return light_m; }
-
-    // Model accessor
-    Model& GetModel() { return model_m; }
-
-    private:
-    Camera camera_m;
-    Model model_m;
-    Light light_m;
-
-    // background color of the scene
-    glm::vec4 background_color_m = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    Camera camera;
+    Model model;
+    Light light;
+    glm::vec4 background_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 };
