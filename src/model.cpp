@@ -125,9 +125,9 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     }
 
     // process material
-    float shininess = 32.0f;
-    glm::vec3 ambient(1.0f, 1.0f, 1.0f);
-    glm::vec3 diffuse(1.0f, 1.0f, 1.0f);
+    float shininess = 8.0f;
+    glm::vec3 ambient(0.2f, 0.2f, 0.2f);
+    glm::vec3 diffuse(0.8f, 0.8f, 0.8f);
     glm::vec3 specular(1.0f, 1.0f, 1.0f);
 
     if (mesh->mMaterialIndex >= 0) {
@@ -142,19 +142,26 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         textures.insert(textures.end(), specularMaps.begin(),
                         specularMaps.end());
 
-        // Extract material properties - using exact old working logic
-        aiColor3D aiAmbient(1.0f, 1.0f, 1.0f);
-        aiColor3D aiDiffuse(1.0f, 1.0f, 1.0f);
-        aiColor3D aiSpecular(1.0f, 1.0f, 1.0f);
+        // Extract material properties - only use if explicitly set
+        aiColor3D aiAmbient, aiDiffuse, aiSpecular;
 
-        material->Get(AI_MATKEY_SHININESS, shininess);
-        material->Get(AI_MATKEY_COLOR_AMBIENT, aiAmbient);
-        material->Get(AI_MATKEY_COLOR_DIFFUSE, aiDiffuse);
-        material->Get(AI_MATKEY_COLOR_SPECULAR, aiSpecular);
+        if (material->Get(AI_MATKEY_SHININESS, shininess) != aiReturn_SUCCESS) {
+            shininess = 8.0f;
+        } else if (shininess <= 0.0f) {
+            // glTF models often set shininess to 0 since they use roughness instead
+            // Use a sensible default to avoid blown-out specular highlights
+            shininess = 8.0f;
+        }
 
-        ambient = glm::vec3(aiAmbient.r, aiAmbient.g, aiAmbient.b);
-        diffuse = glm::vec3(aiDiffuse.r, aiDiffuse.g, aiDiffuse.b);
-        specular = glm::vec3(aiSpecular.r, aiSpecular.g, aiSpecular.b);
+        if (material->Get(AI_MATKEY_COLOR_AMBIENT, aiAmbient) == aiReturn_SUCCESS) {
+            ambient = glm::vec3(aiAmbient.r, aiAmbient.g, aiAmbient.b);
+        }
+        if (material->Get(AI_MATKEY_COLOR_DIFFUSE, aiDiffuse) == aiReturn_SUCCESS) {
+            diffuse = glm::vec3(aiDiffuse.r, aiDiffuse.g, aiDiffuse.b);
+        }
+        if (material->Get(AI_MATKEY_COLOR_SPECULAR, aiSpecular) == aiReturn_SUCCESS) {
+            specular = glm::vec3(aiSpecular.r, aiSpecular.g, aiSpecular.b);
+        }
     }
 
     return Mesh(vertices, indices, textures, shininess, ambient, diffuse,
