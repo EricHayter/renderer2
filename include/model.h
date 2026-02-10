@@ -20,6 +20,7 @@ class Model
         size_t GetVertexCount() const;
         size_t GetTriangleCount() const;
         size_t GetMeshCount() const { return meshes.size(); }
+        const std::vector<std::unique_ptr<Texture>>& GetTextures() const { return textures_loaded; }
 
         glm::mat4 GetModelMatrix() const;
         int GetID() const { return id; }

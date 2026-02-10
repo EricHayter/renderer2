@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "texture.h"
 
 DebugWindow::DebugWindow(Window& window, FPSTracker& fps_tracker)
     : window_m{window}, fps_tracker_m{fps_tracker} {
@@ -150,4 +151,35 @@ void DebugWindow::ModelsMenu(Scene& scene) {
     ImGui::Text("  Vertices: %zu", model.GetVertexCount());
     ImGui::Text("  Triangles: %zu", model.GetTriangleCount());
     ImGui::Text("  Meshes: %zu", model.GetMeshCount());
+
+    ImGui::Separator();
+    ImGui::Text("Textures:");
+    const auto& textures = model.GetTextures();
+    if (textures.empty()) {
+        ImGui::Text("  None");
+    } else {
+        // Create a scrollable child region for textures
+        if (ImGui::BeginChild("TexturesScrollable", ImVec2(0, 200), true)) {
+            for (const auto& texture : textures) {
+                const char* type_str =
+                    texture->GetType() == Texture::Type::DIFFUSE ? "Diffuse"
+                                                                 : "Specular";
+                if (texture->IsExternalTexure()) {
+                    ImGui::Text("[%s] %s", type_str,
+                                texture->GetPath().filename().string().c_str());
+                } else {
+                    ImGui::Text("[%s] <embedded>", type_str);
+                }
+
+                // Display texture image if available
+                auto texture_id = texture->GetId();
+                if (texture_id.has_value()) {
+                    ImGui::Image((void*)(intptr_t)texture_id.value(),
+                                 ImVec2(128, 128));
+                }
+                ImGui::Separator();
+            }
+        }
+        ImGui::EndChild();
+    }
 }
