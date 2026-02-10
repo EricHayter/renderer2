@@ -59,8 +59,7 @@ glm::mat4 Model::GetModelMatrix() const {
 }
 
 void Model::loadModel(const std::filesystem::path &path) {
-    scene =
-        importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
         !scene->mRootNode) {
@@ -148,18 +147,22 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         if (material->Get(AI_MATKEY_SHININESS, shininess) != aiReturn_SUCCESS) {
             shininess = 8.0f;
         } else if (shininess <= 0.0f) {
-            // glTF models often set shininess to 0 since they use roughness instead
-            // Use a sensible default to avoid blown-out specular highlights
+            // glTF models often set shininess to 0 since they use roughness
+            // instead Use a sensible default to avoid blown-out specular
+            // highlights
             shininess = 8.0f;
         }
 
-        if (material->Get(AI_MATKEY_COLOR_AMBIENT, aiAmbient) == aiReturn_SUCCESS) {
+        if (material->Get(AI_MATKEY_COLOR_AMBIENT, aiAmbient) ==
+            aiReturn_SUCCESS) {
             ambient = glm::vec3(aiAmbient.r, aiAmbient.g, aiAmbient.b);
         }
-        if (material->Get(AI_MATKEY_COLOR_DIFFUSE, aiDiffuse) == aiReturn_SUCCESS) {
+        if (material->Get(AI_MATKEY_COLOR_DIFFUSE, aiDiffuse) ==
+            aiReturn_SUCCESS) {
             diffuse = glm::vec3(aiDiffuse.r, aiDiffuse.g, aiDiffuse.b);
         }
-        if (material->Get(AI_MATKEY_COLOR_SPECULAR, aiSpecular) == aiReturn_SUCCESS) {
+        if (material->Get(AI_MATKEY_COLOR_SPECULAR, aiSpecular) ==
+            aiReturn_SUCCESS) {
             specular = glm::vec3(aiSpecular.r, aiSpecular.g, aiSpecular.b);
         }
     }

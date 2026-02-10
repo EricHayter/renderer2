@@ -3,8 +3,8 @@
 Scene::Scene(const std::filesystem::path& path) : model(path), camera{} {}
 
 void Scene::Draw(Shader& shader, const Window& window) {
-    glClearColor(background_color.r, background_color.g,
-                 background_color.b, background_color.a);
+    glClearColor(background_color.r, background_color.g, background_color.b,
+                 background_color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     shader.Use();
