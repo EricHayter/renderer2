@@ -59,7 +59,8 @@ glm::mat4 Model::GetModelMatrix() const {
 }
 
 void Model::loadModel(const std::filesystem::path &path) {
-    scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs |
+                                        aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
         !scene->mRootNode) {
@@ -113,6 +114,24 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             vertex.texture_coordinates = glm::vec2(0.0f, 0.0f);
         }
 
+        if (mesh->mTangents) {
+            vector.x = mesh->mTangents[i].x;
+            vector.y = mesh->mTangents[i].y;
+            vector.z = mesh->mTangents[i].z;
+            vertex.tangent = vector;
+        } else {
+            vertex.tangent = glm::vec3(0.0f, 0.0f, 0.0f);
+        }
+
+        if (mesh->mBitangents) {
+            vector.x = mesh->mBitangents[i].x;
+            vector.y = mesh->mBitangents[i].y;
+            vector.z = mesh->mBitangents[i].z;
+            vertex.bitangent = vector;
+        } else {
+            vertex.bitangent = glm::vec3(0.0f, 0.0f, 0.0f);
+        }
+
         vertices.push_back(vertex);
     }
     // process indices
@@ -140,6 +159,9 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             loadMaterialTextures(material, aiTextureType_SPECULAR);
         textures.insert(textures.end(), specularMaps.begin(),
                         specularMaps.end());
+        std::vector<Texture *> normalMaps =
+            loadMaterialTextures(material, aiTextureType_NORMALS);
+        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
         // Extract material properties - only use if explicitly set
         aiColor3D aiAmbient, aiDiffuse, aiSpecular;
@@ -167,15 +189,19 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         }
     }
 
-    return Mesh(vertices, indices, textures, shininess, ambient, diffuse,
-                specular);
+    MaterialProps material = {.shininess = shininess,
+                              .ambient = ambient,
+                              .diffuse = diffuse,
+                              .specular = specular};
+    return Mesh(vertices, indices, textures, material);
 }
 
 std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,
                                                    aiTextureType type) {
     const std::unordered_map<aiTextureType, Texture::Type> texture_type_map{
         {aiTextureType_DIFFUSE, Texture::Type::DIFFUSE},
-        {aiTextureType_SPECULAR, Texture::Type::SPECULAR}};
+        {aiTextureType_SPECULAR, Texture::Type::SPECULAR},
+        {aiTextureType_NORMALS, Texture::Type::NORMAL}};
     if (!texture_type_map.contains(type)) {
         throw std::runtime_error(
             std::format("Unknown aiTextureType value {}", (int)type));
@@ -183,6 +209,14 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial *mat,
     Texture::Type texture_type = texture_type_map.at(type);
 
     std::vector<Texture *> textures;
+    unsigned int textureCount = mat->GetTextureCount(type);
+    if (textureCount > 0) {
+        const char *typeNames[] = {"DIFFUSE", "SPECULAR", "NORMAL"};
+        const char *typeName = (type == aiTextureType_DIFFUSE)    ? typeNames[0]
+                               : (type == aiTextureType_SPECULAR) ? typeNames[1]
+                               : (type == aiTextureType_NORMALS)  ? typeNames[2]
+                                                                  : "UNKNOWN";
+    }
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString texture_name;
         mat->GetTexture(type, i, &texture_name);

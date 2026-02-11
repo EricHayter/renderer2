@@ -12,13 +12,21 @@ struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texture_coordinates;
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
+};
+
+struct MaterialProps {
+    float shininess;
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
 };
 
 class Mesh {
     public:
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture*> textures,
-             float shininess, glm::vec3 ambient,
-             glm::vec3 diffuse, glm::vec3 specular);
+             MaterialProps material);
         ~Mesh();
         Mesh(const Mesh& other) = delete;
         Mesh& operator=(const Mesh& other) = delete;
@@ -38,8 +46,5 @@ class Mesh {
         std::vector<Texture*> textures;
         std::optional<unsigned int> VAO, VBO, EBO;
 
-        float shininess_m;
-        glm::vec3 ambient_m;
-        glm::vec3 diffuse_m;
-        glm::vec3 specular_m;
+        MaterialProps material;
 };

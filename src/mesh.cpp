@@ -9,15 +9,11 @@
 #include <format>
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-           std::vector<Texture*> textures, float shininess, glm::vec3 ambient,
-           glm::vec3 diffuse, glm::vec3 specular)
+           std::vector<Texture*> textures, MaterialProps material)
     : vertices(std::move(vertices)),
       indices(std::move(indices)),
       textures(std::move(textures)),
-      shininess_m(shininess),
-      ambient_m(ambient),
-      diffuse_m(diffuse),
-      specular_m(specular) {
+      material(material) {
     // Setup OpenGL buffers
     unsigned int vao, vbo, ebo;
     glGenVertexArrays(1, &vao);
@@ -49,6 +45,14 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           (void*)offsetof(Vertex, texture_coordinates));
+    // vertex tangents
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          (void*)offsetof(Vertex, tangent));
+    // vertex bitangents
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          (void*)offsetof(Vertex, bitangent));
 
     glBindVertexArray(0);
 }
@@ -66,10 +70,7 @@ Mesh::Mesh(Mesh&& other)
       VAO(other.VAO),
       VBO(other.VBO),
       EBO(other.EBO),
-      shininess_m(other.shininess_m),
-      ambient_m(other.ambient_m),
-      diffuse_m(other.diffuse_m),
-      specular_m(other.specular_m) {
+      material(other.material) {
     // Invalidate source to prevent double-delete
     other.VAO = std::nullopt;
     other.VBO = std::nullopt;
@@ -90,10 +91,7 @@ Mesh& Mesh::operator=(Mesh&& other) {
         VAO = other.VAO;
         VBO = other.VBO;
         EBO = other.EBO;
-        shininess_m = other.shininess_m;
-        ambient_m = other.ambient_m;
-        diffuse_m = other.diffuse_m;
-        specular_m = other.specular_m;
+        material = other.material;
 
         // Invalidate source to prevent double-delete
         other.VAO = std::nullopt;
@@ -107,6 +105,7 @@ void Mesh::Draw(Shader& shader) {
     assert(VAO && VBO && EBO && "Attempting to draw with invalid Mesh");
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
+    bool hasNormalMap = false;
     for (unsigned int i = 0; i < textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 +
                         i);  // activate proper texture unit before binding
@@ -125,6 +124,11 @@ void Mesh::Draw(Shader& shader) {
                 texture_type_str = "Specular";
                 break;
             }
+            case Texture::Type::NORMAL: {
+                texture_type_str = "NormalMap";
+                hasNormalMap = true;
+                break;
+            }
         }
 
         shader.SetInt(std::format("u{}{}", texture_type_str, number), {(int)i});
@@ -132,14 +136,20 @@ void Mesh::Draw(Shader& shader) {
     }
     glActiveTexture(GL_TEXTURE0);
 
+    // Set whether to use normal mapping
+    shader.SetInt("uUseNormalMap", {hasNormalMap ? 1 : 0});
+
     /* setting uniform values of material props */
-    shader.SetFloat("uMaterial.shininess", {shininess_m});
-    shader.SetFloat("uMaterial.ambient",
-                    {ambient_m.r, ambient_m.g, ambient_m.b});
-    shader.SetFloat("uMaterial.diffuse",
-                    {diffuse_m.r, diffuse_m.g, diffuse_m.b});
-    shader.SetFloat("uMaterial.specular",
-                    {specular_m.r, specular_m.g, specular_m.b});
+    shader.SetFloat("uMaterial.shininess", {material.shininess});
+    shader.SetFloat(
+        "uMaterial.ambient",
+        {material.ambient.r, material.ambient.g, material.ambient.b});
+    shader.SetFloat(
+        "uMaterial.diffuse",
+        {material.diffuse.r, material.diffuse.g, material.diffuse.b});
+    shader.SetFloat(
+        "uMaterial.specular",
+        {material.specular.r, material.specular.g, material.specular.b});
 
     // draw mesh
     glBindVertexArray(*VAO);

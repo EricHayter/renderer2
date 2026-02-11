@@ -17,27 +17,41 @@ struct Light {
 in vec3 vFragPos;
 in vec3 vNormal;
 in vec2 vTexCoords;
+in vec3 vTangentLightPos;
+in vec3 vTangentFragPos;
 
 uniform Material uMaterial;
 uniform Light uLight;
 uniform sampler2D uDiffuse1;
 uniform sampler2D uSpecular1;
+uniform sampler2D uNormalMap;
+uniform bool uUseNormalMap;
 
 out vec4 FragColor;
 
-// Calculations done in view space
+// Calculations done in view space (or tangent space when using normal maps)
 void main() {
-    // lightDir is going away from the fragment to the light
-    vec3 lightDir = normalize(uLight.position - vFragPos);
+    vec3 lightDir, viewDir, normal;
 
-    // coming from point to my screen
-    vec3 viewDir = normalize(-vFragPos);
+    if (uUseNormalMap) {
+        // Sample normal from normal map and transform to [-1, 1]
+        normal = texture(uNormalMap, vTexCoords).rgb;
+        normal = normalize(normal * 2.0 - 1.0);
+
+        // Already in tangent space
+        lightDir = normalize(vTangentLightPos - vTangentFragPos);
+        viewDir = normalize(-vTangentFragPos);  // View is at origin
+    } else {
+        // Use interpolated vertex normal (view space)
+        normal = normalize(vNormal);
+        lightDir = normalize(uLight.position - vFragPos);
+        viewDir = normalize(-vFragPos);
+    }
 
     // Diffusion math
     vec3 diffuseColor = vec3(texture(uDiffuse1, vTexCoords));
     vec3 ambient = diffuseColor * uLight.ambient * uMaterial.ambient;
 
-    vec3 normal = normalize(vNormal);
     float intensity = max(dot(lightDir, normal), 0.0f);
     vec3 diffuse = diffuseColor * intensity * uLight.diffuse * uMaterial.diffuse;
 

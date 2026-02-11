@@ -31,6 +31,7 @@ class Texture {
     enum class Type {
         DIFFUSE,
         SPECULAR,
+        NORMAL,
     };
 
     struct Configuration {
