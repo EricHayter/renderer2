@@ -39,6 +39,10 @@ class Model
         std::filesystem::path directory;
         std::vector<std::unique_ptr<Texture>> textures_loaded;
 
+        // Default textures for meshes without diffuse/specular maps
+        std::unique_ptr<Texture> default_diffuse;
+        std::unique_ptr<Texture> default_specular;
+
         // Keep importer alive - scene points into its memory
         Assimp::Importer importer;
         const aiScene* scene;

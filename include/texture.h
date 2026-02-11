@@ -7,6 +7,8 @@
 
 #include <filesystem>
 #include <optional>
+#include <stdexcept>
+#include <string>
 #include <string_view>
 #include "assimp/texture.h"
 
@@ -34,6 +36,15 @@ class Texture {
         NORMAL,
     };
 
+    static std::string TypeToString(Type type) {
+        switch (type) {
+            case Type::DIFFUSE: return "Diffuse";
+            case Type::SPECULAR: return "Specular";
+            case Type::NORMAL: return "Normal";
+        }
+        throw std::runtime_error("Unknown Texture::Type value");
+    }
+
     struct Configuration {
       GLint texture_wrap_s = GL_REPEAT;
       GLint texture_wrap_t = GL_REPEAT;
@@ -44,6 +55,7 @@ class Texture {
 
     Texture(const std::filesystem::path& path, std::string_view name, const Configuration& config);
     Texture(const aiTexture* texture, std::string_view name, const Configuration& config);
+    Texture(std::array<unsigned char, 3> rgb, std::string_view name, const Configuration& config);
     Texture() = default;
     ~Texture();
 

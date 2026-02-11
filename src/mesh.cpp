@@ -134,6 +134,7 @@ void Mesh::Draw(Shader& shader) {
         shader.SetInt(std::format("u{}{}", texture_type_str, number), {(int)i});
         textures[i]->Use();
     }
+
     glActiveTexture(GL_TEXTURE0);
 
     // Set whether to use normal mapping

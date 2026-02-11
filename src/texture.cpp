@@ -168,6 +168,23 @@ Texture::Texture(const aiTexture* texture, std::string_view name,
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
+Texture::Texture(std::array<unsigned char, 3> rgb, std::string_view name,
+                 const Configuration& config) {
+    unsigned int texture_id;
+    glGenTextures(1, &texture_id);
+    texture_id_m = texture_id;
+    glBindTexture(GL_TEXTURE_2D, *texture_id_m);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, config.texture_wrap_s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, config.texture_wrap_t);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                    config.texture_min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                    config.texture_mag_filter);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                 rgb.data());
+}
+
 Texture::~Texture() {
     if (texture_id_m) glDeleteTextures(1, &*texture_id_m);
 }

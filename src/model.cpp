@@ -1,6 +1,7 @@
 #include "model.h"
 
 #include <algorithm>
+#include <array>
 #include <format>
 #include <iostream>
 #include <stdexcept>
@@ -15,6 +16,16 @@
 int Model::next_id = 0;
 
 Model::Model(const std::filesystem::path &path) : id(next_id++) {
+    // Create default textures for meshes without diffuse/specular maps
+    default_diffuse = std::make_unique<Texture>(
+        std::array<unsigned char, 3>{255, 255, 255},
+        std::format("default_diffuse_{}", id),
+        Texture::Configuration{.texture_type = Texture::Type::DIFFUSE});
+    default_specular = std::make_unique<Texture>(
+        std::array<unsigned char, 3>{0, 0, 0},
+        std::format("default_specular_{}", id),
+        Texture::Configuration{.texture_type = Texture::Type::SPECULAR});
+
     loadModel(path);
 }
 
@@ -154,11 +165,24 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         // Load textures
         std::vector<Texture *> diffuseMaps =
             loadMaterialTextures(material, aiTextureType_DIFFUSE);
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        if (diffuseMaps.empty()) {
+            // No diffuse map found, use default white texture
+            textures.push_back(default_diffuse.get());
+        } else {
+            textures.insert(textures.end(), diffuseMaps.begin(),
+                            diffuseMaps.end());
+        }
+
         std::vector<Texture *> specularMaps =
             loadMaterialTextures(material, aiTextureType_SPECULAR);
-        textures.insert(textures.end(), specularMaps.begin(),
-                        specularMaps.end());
+        if (specularMaps.empty()) {
+            // No specular map found, use default black texture
+            textures.push_back(default_specular.get());
+        } else {
+            textures.insert(textures.end(), specularMaps.begin(),
+                            specularMaps.end());
+        }
+
         std::vector<Texture *> normalMaps =
             loadMaterialTextures(material, aiTextureType_NORMALS);
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
@@ -187,6 +211,10 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             aiReturn_SUCCESS) {
             specular = glm::vec3(aiSpecular.r, aiSpecular.g, aiSpecular.b);
         }
+    } else {
+        // No material at all, use default textures
+        textures.push_back(default_diffuse.get());
+        textures.push_back(default_specular.get());
     }
 
     MaterialProps material = {.shininess = shininess,
