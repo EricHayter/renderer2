@@ -1,15 +1,11 @@
-add_subdirectory(glfw)
+# OpenGL and windowing
 add_subdirectory(glad/cmake)
+glad_add_library(glad_gl_core_33 SHARED API gl:core=3.3)
+
+add_subdirectory(glfw)
 add_subdirectory(glm)
 
-# Configure assimp options before adding subdirectory
-set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
-set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
-add_subdirectory(assimp)
-
-# imgui setup
+# ImGui and related UI libraries
 add_library(imgui STATIC
     imgui/imgui.cpp
     imgui/imgui_demo.cpp
@@ -21,10 +17,16 @@ add_library(imgui STATIC
 )
 target_include_directories(imgui PUBLIC
     imgui
-    imgui/backends)
-target_link_libraries(imgui
-    PUBLIC
-    glfw
+    imgui/backends
 )
+target_link_libraries(imgui PUBLIC glfw)
 
-glad_add_library(glad_gl_core_33 SHARED API gl:core=3.3)
+add_subdirectory(ImGuiFileDialog)
+target_include_directories(ImGuiFileDialog PUBLIC imgui)
+
+# Asset loading
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(assimp)

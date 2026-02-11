@@ -13,3 +13,6 @@
 [submodule "thirdparty/imgui"]
 	path = thirdparty/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "thirdparty/ImGuiFileDialog"]
+	path = thirdparty/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git

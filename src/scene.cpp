@@ -1,7 +1,5 @@
 #include "scene.h"
 
-Scene::Scene(const std::filesystem::path& path) : model(path), camera{} {}
-
 void Scene::Draw(Shader& shader, const Window& window) {
     glClearColor(background_color.r, background_color.g, background_color.b,
                  background_color.a);
@@ -26,19 +24,20 @@ void Scene::Draw(Shader& shader, const Window& window) {
     auto& specular = light.specular;
     shader.SetFloat("uLight.specular", {specular.r, specular.g, specular.b});
 
-    // TODO in the future this is going to be a member of the model objects I
-    // have
-    glm::mat4 model_mat = model.GetModelMatrix();
-    glm::mat4 normal_mat = glm::transpose(glm::inverse(view_mat * model_mat));
-    shader.SetMatrix4("uNormalMatrix", normal_mat);
-
-    shader.SetMatrix4("uModel", model_mat);
-
     auto [width, height] = window.GetDimensions();
     float aspect_ratio = width / (float)height;
     glm::mat4 projection_mat =
         glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
     shader.SetMatrix4("uProjection", projection_mat);
 
-    model.Draw(shader);
+    // Draw all models
+    for (const auto& model_ptr : model) {
+        glm::mat4 model_mat = model_ptr->GetModelMatrix();
+        glm::mat4 normal_mat =
+            glm::transpose(glm::inverse(view_mat * model_mat));
+        shader.SetMatrix4("uNormalMatrix", normal_mat);
+        shader.SetMatrix4("uModel", model_mat);
+
+        model_ptr->Draw(shader);
+    }
 }

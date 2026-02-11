@@ -1,6 +1,8 @@
 #include "debug_window.h"
 
-#include "glm/gtc/constants.hpp"
+#include <iostream>
+
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -132,54 +134,102 @@ void DebugWindow::LightingMenu(Scene& scene) {
 void DebugWindow::ModelsMenu(Scene& scene) {
     if (!ImGui::CollapsingHeader("Models")) return;
 
-    Model& model = scene.model;
-
-    ImGui::Text("Model ID: %d", model.GetID());
-    ImGui::Separator();
-
-    // Translation controls
-    ImGui::DragFloat3("Translation", &model.translation.x, 0.1f);
-
-    // Scale controls
-    ImGui::DragFloat3("Scale", &model.scale.x, 0.01f, 0.001f, 100.0f);
-
-    // Coordinate system toggle
-    ImGui::Checkbox("Y-Up (unchecked = Z-Up)", &model.is_y_up);
-
-    ImGui::Separator();
-    ImGui::Text("Stats:");
-    ImGui::Text("  Vertices: %zu", model.GetVertexCount());
-    ImGui::Text("  Triangles: %zu", model.GetTriangleCount());
-    ImGui::Text("  Meshes: %zu", model.GetMeshCount());
-
-    ImGui::Separator();
-    ImGui::Text("Textures:");
-    const auto& textures = model.GetTextures();
-    if (textures.empty()) {
-        ImGui::Text("  None");
-    } else {
-        // Create a scrollable child region for textures
-        if (ImGui::BeginChild("TexturesScrollable", ImVec2(0, 200), true)) {
-            for (const auto& texture : textures) {
-                const char* type_str =
-                    texture->GetType() == Texture::Type::DIFFUSE ? "Diffuse"
-                                                                 : "Specular";
-                if (texture->IsExternalTexure()) {
-                    ImGui::Text("[%s] %s", type_str,
-                                texture->GetPath().filename().string().c_str());
-                } else {
-                    ImGui::Text("[%s] <embedded>", type_str);
-                }
-
-                // Display texture image if available
-                auto texture_id = texture->GetId();
-                if (texture_id.has_value()) {
-                    ImGui::Image((void*)(intptr_t)texture_id.value(),
-                                 ImVec2(128, 128));
-                }
-                ImGui::Separator();
+    // open Dialog Simple
+    if (ImGui::Button("Open Model")) {
+        IGFD::FileDialogConfig config;
+        config.path = ".";
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+                                                "Choose File", ".*", config);
+    }
+    // display
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {  // action if OK
+            std::string filePathName =
+                ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath =
+                ImGuiFileDialog::Instance()->GetCurrentPath();
+            std::cout << std::format("FILE PATH NAME: {}, FILE PATH: {}\n",
+                                     filePathName, filePath);
+            // action
+            try {
+                scene.model.push_back(std::make_unique<Model>(
+                    std::filesystem::path(filePathName)));
+            } catch (std::runtime_error& err) {
+                std::cout << err.what();
             }
         }
-        ImGui::EndChild();
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    for (const auto& model_ptr : scene.model) {
+        Model& model = *model_ptr;
+        int model_id = model.GetID();
+
+        // Create a collapsing header for each model
+        if (ImGui::CollapsingHeader(
+                std::format("Model {}", model_id).c_str())) {
+            ImGui::Indent();
+
+            // Translation controls
+            ImGui::DragFloat3(
+                std::format("Translation##model{}", model_id).c_str(),
+                &model.translation.x, 0.1f);
+
+            // Scale controls
+            ImGui::DragFloat3(std::format("Scale##model{}", model_id).c_str(),
+                              &model.scale.x, 0.01f, 0.001f, 100.0f);
+
+            // Coordinate system toggle
+            ImGui::Checkbox(
+                std::format("Y-Up (unchecked = Z-Up)##model{}", model_id)
+                    .c_str(),
+                &model.is_y_up);
+
+            ImGui::Separator();
+            ImGui::Text("Stats:");
+            ImGui::Text("  Vertices: %zu", model.GetVertexCount());
+            ImGui::Text("  Triangles: %zu", model.GetTriangleCount());
+            ImGui::Text("  Meshes: %zu", model.GetMeshCount());
+
+            ImGui::Separator();
+            ImGui::Text("Textures:");
+            const auto& textures = model.GetTextures();
+            if (textures.empty()) {
+                ImGui::Text("  None");
+            } else {
+                // Create a scrollable child region for textures
+                if (ImGui::BeginChild(
+                        std::format("TexturesScrollable##model{}", model_id)
+                            .c_str(),
+                        ImVec2(0, 200), true)) {
+                    for (const auto& texture : textures) {
+                        const char* type_str =
+                            texture->GetType() == Texture::Type::DIFFUSE
+                                ? "Diffuse"
+                                : "Specular";
+                        if (texture->IsExternalTexure()) {
+                            ImGui::Text(
+                                "[%s] %s", type_str,
+                                texture->GetPath().filename().string().c_str());
+                        } else {
+                            ImGui::Text("[%s] <embedded>", type_str);
+                        }
+
+                        // Display texture image if available
+                        auto texture_id = texture->GetId();
+                        if (texture_id.has_value()) {
+                            ImGui::Image((void*)(intptr_t)texture_id.value(),
+                                         ImVec2(128, 128));
+                        }
+                        ImGui::Separator();
+                    }
+                }
+                ImGui::EndChild();
+            }
+
+            ImGui::Unindent();
+        }
     }
 }

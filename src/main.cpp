@@ -1,6 +1,5 @@
 #include <filesystem>
-#include <format>
-#include <iostream>
+#include <memory>
 
 #include "debug_window.h"
 #include "fps_tracker.h"
@@ -9,20 +8,14 @@
 #include "window.h"
 
 int main(int argc, const char** const argv) {
-    if (argc != 2) {
-        std::cout << std::format("Usage: {} FILE\n", argv[0]);
-        return -1;
-    }
-    std::filesystem::path model_path = argv[1];
-    if (!std::filesystem::exists(model_path)) {
-        std::cout << std::format("Couldn't find model at '{}'\n",
-                                 model_path.string());
-        return -1;
-    }
-
     Window window({});
-    Scene scene = Scene(model_path);
+    Scene scene;
     Shader shader = Shader("../shaders/vertex.vs", "../shaders/fragment.fs");
+
+    // Load models from command line arguments
+    for (int i = 1; i < argc; i++) {
+        scene.model.push_back(std::make_unique<Model>(argv[i]));
+    }
 
     glEnable(GL_DEPTH_TEST);
 

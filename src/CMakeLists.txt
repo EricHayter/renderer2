@@ -12,16 +12,17 @@ add_executable(renderer
 )
 
 target_include_directories(renderer
-    PUBLIC
+    PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/thirdparty
 )
 
 target_link_libraries(renderer
-    PUBLIC
+    PRIVATE
     glad_gl_core_33
     glfw
     glm::glm
     assimp
     imgui
+    ImGuiFileDialog
 )
