@@ -6,6 +6,17 @@ Check out the devlog below for a walkthrough of the renderer in action.
 
 [![renderer2 devlog](https://img.youtube.com/vi/Bp74YMOqq7I/0.jpg)](https://youtu.be/Bp74YMOqq7I)
 
+## Gallery
+
+<p align="center">
+  <img src="docs/demos/demo.gif" alt="Animated demo" width="600">
+</p>
+
+<p align="center">
+  <img src="docs/demos/building.png" alt="Building render" width="400">
+  <img src="docs/demos/jeff.png" alt="Jeff model" width="400">
+</p>
+
 Following [LearnOpenGL](https://learnopengl.com/) and documenting everything I learn in `notes.txt`.
 
 [See my notes](https://erichayter.github.io/renderer2/) on everything I've learned so far.
