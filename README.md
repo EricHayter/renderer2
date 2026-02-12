@@ -2,7 +2,9 @@
 
 An OpenGL-based renderer built as an evolution of my [previous software renderer](https://github.com/EricHayter/renderer). This version uses modern OpenGL and GPU shaders instead of doing all rendering calculations by hand.
 
-![Renderer Demo](docs/demos/demo.gif)
+Check out the devlog below for a walkthrough of the renderer in action.
+
+[![renderer2 devlog](https://img.youtube.com/vi/Bp74YMOqq7I/0.jpg)](https://youtu.be/Bp74YMOqq7I)
 
 Following [LearnOpenGL](https://learnopengl.com/) and documenting everything I learn in `notes.txt`.
 
