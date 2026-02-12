@@ -9,6 +9,8 @@ add_executable(renderer
     scene.cpp
     debug_window.cpp
     fps_tracker.cpp
+    skybox.cpp
+    image_data.cpp
 )
 
 target_include_directories(renderer

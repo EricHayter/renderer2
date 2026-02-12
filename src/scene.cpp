@@ -1,14 +1,26 @@
 #include "scene.h"
 
 void Scene::Draw(Shader& shader, const Window& window) {
-    glClearColor(background_color.r, background_color.g, background_color.b,
-                 background_color.a);
+    // CLEAR SCREEN
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    shader.Use();
-
+    // GET TRANSFORMATION MATRICIES
     glm::mat4 view_mat = camera.GetViewMatrix();
+
+    auto [width, height] = window.GetDimensions();
+    float aspect_ratio = width / (float)height;
+
+    glm::mat4 projection_mat =
+        glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
+
+    // DISPLAY SKYBOX
+    if (skybox && skybox_shader)
+        skybox->Draw(*skybox_shader, view_mat, projection_mat);
+
+    // PREPARE TO DRAW MODELS
+    shader.Use();
     shader.SetMatrix4("uView", view_mat);
+    shader.SetMatrix4("uProjection", projection_mat);
 
     auto& light_pos = light.position;
     glm::vec4 transformed_light_pos =
@@ -23,12 +35,6 @@ void Scene::Draw(Shader& shader, const Window& window) {
     shader.SetFloat("uLight.diffuse", {diffuse.r, diffuse.g, diffuse.b});
     auto& specular = light.specular;
     shader.SetFloat("uLight.specular", {specular.r, specular.g, specular.b});
-
-    auto [width, height] = window.GetDimensions();
-    float aspect_ratio = width / (float)height;
-    glm::mat4 projection_mat =
-        glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
-    shader.SetMatrix4("uProjection", projection_mat);
 
     // Draw all models
     for (const auto& model_ptr : model) {

@@ -5,12 +5,19 @@
 #include "fps_tracker.h"
 #include "scene.h"
 #include "shader.h"
+#include "skybox.h"
 #include "window.h"
 
 int main(int argc, const char** const argv) {
     Window window({});
     Scene scene;
     Shader shader = Shader("../shaders/vertex.vs", "../shaders/fragment.fs");
+
+    // Create skybox with single cross-layout cubemap
+    scene.skybox = std::make_unique<Skybox>(
+        "../models/textures/skybox/StandardCubeMap.png");
+    scene.skybox_shader =
+        Shader("../shaders/skybox.vs", "../shaders/skybox.fs");
 
     // Load models from command line arguments
     for (int i = 1; i < argc; i++) {

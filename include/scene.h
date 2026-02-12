@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "camera.h"
@@ -10,6 +11,7 @@
 #include "shader.h"
 #include "window.h"
 #include "light.h"
+#include "skybox.h"
 
 class Scene {
 public:
@@ -18,6 +20,8 @@ public:
 
     Camera camera;
     std::vector<std::unique_ptr<Model>> model;
+
+    std::unique_ptr<Skybox> skybox;
+    std::optional<Shader> skybox_shader;
     Light light;
-    glm::vec4 background_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 };
